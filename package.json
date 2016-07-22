@@ -1,0 +1,11 @@
+{
+  "name": "@noinfopath/noinfopath-node-libraries",
+  "version": "1.0.0",
+  "description": "Provides various services that are shared by BEDS and DTC.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "The NoInfoPath Group, LLC",
+  "license": "MIT"
+}
