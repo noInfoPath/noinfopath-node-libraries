@@ -1,8 +1,6 @@
 var Promise = require('es6-promise').Promise,
-	config = require("./config.json"),
 	http = require('http'),
-	querystring = require('querystring')
-	;
+	querystring = require('querystring');
 
 function NoREST(namespaceCfg) {
 	var namespace = namespaceCfg,
@@ -12,22 +10,22 @@ function NoREST(namespaceCfg) {
 	function _getNoDbSchema() {
 		console.log("getNoDbSchema");
 		var options = {
-				host: config.rest.host,
-				port: config.rest.port,
-				method: "GET",
-				path: config.rest.noDbSchemaUri,
-				headers: {
-					'Authorization': 'Bearer ' + user.access_token,
-					'Content-Type': 'application/json'
-				}
-			};
+			host: config.rest.host,
+			port: config.rest.port,
+			method: "GET",
+			path: config.rest.noDbSchemaUri,
+			headers: {
+				'Authorization': 'Bearer ' + user.access_token,
+				'Content-Type': 'application/json'
+			}
+		};
 
 		return this.request(options);
 	}
 
 	function _authReq(options, payload) {
 
-		return new Promise(function(resolve, reject){
+		return new Promise(function (resolve, reject) {
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
 				resp = "",
@@ -40,14 +38,14 @@ function NoREST(namespaceCfg) {
 
 
 
-			req = http.request(options, function(res) {
+			req = http.request(options, function (res) {
 				res.setEncoding('utf8');
-				res.on('data', function(chunk) {
+				res.on('data', function (chunk) {
 					resp = resp + chunk;
 				});
-				res.on('end', function() {
+				res.on('end', function () {
 
-					switch(res.statusCode){
+					switch(res.statusCode) {
 						case 400:
 						case 500:
 							reject(res.statusMessage);
@@ -63,7 +61,7 @@ function NoREST(namespaceCfg) {
 							//log(entity.entityName + " statusCode: ", JSON.stringify(res));
 							if(resp.indexOf("<") === 0) {
 								reject(resp);
-							}else{
+							} else {
 								resolve(!!resp ? JSON.parse(resp) : []);
 
 							}
@@ -74,7 +72,7 @@ function NoREST(namespaceCfg) {
 			});
 
 
-			req.on('error', function(err){
+			req.on('error', function (err) {
 				console.error(namespace.name, err);
 			});
 
@@ -105,25 +103,28 @@ function NoREST(namespaceCfg) {
 				};
 
 			return _authReq(options, payload)
-				.then(function(data){
+				.then(function (data) {
 					user = data;
 					console.log(namespace.name, "Authentication successful.");
 					//console.log(user);
 				})
-				.catch(function(err){
+				.catch(function (err) {
 					console.error(namespace.name, err);
 				});
-		}else{
-			return Promise.resolve({userId: "fake", access_token: "FAKE BEARER TOKEN"});
+		} else {
+			return Promise.resolve({
+				userId: "fake",
+				access_token: "FAKE BEARER TOKEN"
+			});
 		}
 	}
 
-	function _authorized(){
-		return new Promise(function(resolve, reject) {
+	function _authorized() {
+		return new Promise(function (resolve, reject) {
 			if(user) {
 				console.log(namespace.name, "Using cached user login.");
 				resolve(user);
-			}else{
+			} else {
 
 				_authenticate()
 					.then(resolve)
@@ -135,11 +136,11 @@ function NoREST(namespaceCfg) {
 	function _request(options, payload) {
 		return _authorized()
 			.then(_authReq.bind(this, options, payload))
-			.then(function(results){
-				console.log(namespace.name, results);
+			.then(function (results) {
+				//console.log(namespace.name, results);
 				return results;
 			})
-			.catch(function(err){
+			.catch(function (err) {
 				console.error(err);
 			});
 	}
@@ -151,7 +152,7 @@ function NoREST(namespaceCfg) {
 	this.noDbSchema = _getNoDbSchema;
 }
 
-module.exports  = function(namespace){
+module.exports = function (namespace) {
 	return new NoREST(namespace);
 	// this.user = undefined;
 	// this.namespace = namespace;

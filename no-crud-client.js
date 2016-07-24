@@ -1,9 +1,7 @@
 function NoCRUDClient(ns) {
 	var namespace = ns,
 		restClient = namespace.rest,
-		config = namespace.config,
-		port = p;
-
+		config = namespace.config;
 
 
 	function restCreate(user, change) {
@@ -23,7 +21,7 @@ function NoCRUDClient(ns) {
 		return rest.request(options);
 
 	}
-	this.create = create;
+	this.create = restCreate;
 
 	function restOne(user, change) {
 		var entity = noDbSchema[change.tableName],
