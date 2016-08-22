@@ -11,6 +11,7 @@
   "dependencies": {
     "bunyan": "^1.8.1",
     "es6-promise": "^3.2.1",
-    "intercept-stdout": "^0.1.2"
+    "intercept-stdout": "^0.1.2",
+    "robe": "^1.0.0"
   }
 }

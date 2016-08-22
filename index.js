@@ -3,11 +3,13 @@ var logging = require("./no-logger"),
 	rest = require("./no-rest-client"),
 	trans = require("./no-trans-man"),
 	version = require("./no-version-control");
+	changes = require("./no-changes");
 
 module.exports = {
 	logging: logging,
 	crudClient: crud,
 	restClient: rest,
 	transactionManager: trans,
-	versionManager: version
+	versionManager: version,
+	changeMonitor: changes
 };

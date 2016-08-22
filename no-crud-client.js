@@ -3,22 +3,41 @@ function NoCRUDClient(ns) {
 		restClient = namespace.rest,
 		config = namespace.config;
 
+	function resolveUrl(ns, c){
+		//console.log("resolveUrl", c);
+		 var url = (ns.name ? "/" + ns.name + "/" : "/") + c.tableName;
+		 //.name, change ? change.table : ""
+		 console.log("url", url);
+		 return url;
+	}
 
 	function restCreate(user, change) {
+		//console.log("change", change);
 		var restCfg = namespace.config.rest,
 			payload = JSON.stringify(change.data),
+			url = resolveUrl(namespace, change),
 			options = {
-				host: host,
-				port: port,
+				host: restCfg.host,
+				port: restCfg.port,
 				method: "POST",
-				path: (restCfg.apiPrefix || "/") + change.tableName,
+				path: url,
 				headers: {
 					'Content-Type': 'application/json',
-					'Content-Length': payload.length
+					'Content-Length': Buffer.byteLength(payload),
+					'strictSSL': false,
+					'rejectUnauthorized': false,
+					'agent': false
 				}
 			};
 
-		return rest.request(options);
+		console.log(namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+		return restClient.request(options, payload)
+			.then(function(data){
+				return data;
+			})
+			.catch(function(err){
+				console.error(err);
+			});
 
 	}
 	this.create = restCreate;
@@ -232,6 +251,6 @@ function NoCRUDClient(ns) {
 	this.delete = restDelete;
 }
 
-module.exports = function (host, port, namespace) {
-	return new NoCRUDClient(host, port, namespace);
+module.exports = function (namespace) {
+	return new NoCRUDClient(namespace);
 };

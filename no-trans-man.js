@@ -40,37 +40,51 @@ function NoTransactionManager(namespaceCfg) {
 
 		return namespace.rest.request(options)
 			.then(function(data){
-				console.log(namespaceName, " has pending ", data.length, "transactions.");
 				return data;
 			})
 			.catch(function(err){
 				console.error(err);
 			})
-
 			;
 
 	}
 	this.pendingTransactions = getPendingTransactions;
 
 	function markTransactionState(transaction, state) {
-		transaction.state = state;
+		var data = {state: state},
+			restCfg = namespace.config.rest,
+			payload = JSON.stringify(data),
+			options = {
+				host: restCfg.host,
+				port: restCfg.port,
+				method: "PUT",
+				path: restCfg.changesUri + "/" + transaction.ChangeID,
+				headers: {
+					'Content-Type': 'application/json',
+					'Content-Length': payload.length
+				}
+			};
 
-		return new Promise(function(resolve, reject) {
-			MongoClient.connect(url)
-				.then(function(db) {
-					db.collection('changes')
-						.update({
-							_id: transaction._id
-						}, transaction)
-						.then(resolve)
-						.catch(reject)
-						.then(function() {
-							db.close();
-							info("markTransactionProcessed::dbclosed");
-						});
-				})
-				.catch(reject);
-		});
+		console.log("markTransactionState", state, transaction);
+
+		return namespace.rest.request(options, payload);
+
+		// return new Promise(function(resolve, reject) {
+		// 	MongoClient.connect(url)
+		// 		.then(function(db) {
+		// 			db.collection('changes')
+		// 				.update({
+		// 					_id: transaction._id
+		// 				}, transaction)
+		// 				.then(resolve)
+		// 				.catch(reject)
+		// 				.then(function() {
+		// 					db.close();
+		// 					console.info("markTransactionProcessed::dbclosed");
+		// 				});
+		// 		})
+		// 		.catch(reject);
+		// });
 	}
 
 	function markTransactionProcessed(transaction) {

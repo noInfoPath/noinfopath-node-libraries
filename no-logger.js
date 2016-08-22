@@ -21,13 +21,13 @@ function NoLogger(c) {
 
 	function handleError(txt) {
 		var m = message(txt);
-		logger.error(m);
+		if(config.logging.bunyan.enabled) logger.error(m);
 		return m;
 	}
 
 	function handleOthers(txt){
 		var m = message(txt);
-		logger.info(m);
+		if(config.logging.bunyan.enabled) logger.info(m);
 		return m;
 	}
 	var unhook_intercept = intercept(handleOthers, handleError);

@@ -5,7 +5,7 @@ var Promise = require('es6-promise').Promise,
 function NoREST(namespaceCfg) {
 	var namespace = namespaceCfg,
 		config = namespace.config,
-		user;
+		user = null;
 
 	function _getNoDbSchema() {
 		console.log("getNoDbSchema");
@@ -24,37 +24,47 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _authReq(options, payload) {
+		console.log("_authReq::begin", options.host, options.port, options.method, options.path);
 
 		return new Promise(function (resolve, reject) {
+
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
 				resp = "",
 				req;
 
+			//console.log("restCfg", (namespace.name ?   namespace.name + "/" : ""));
 
 			if(authCfg && user) {
 				options.headers[authCfg.key] = authCfg.value.replace("userToken", user[authCfg.userToken]);
 			}
 
+			options.headers.connection = "keep-alive";
 
+			//console.log("request", options);
 
 			req = http.request(options, function (res) {
 				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
 					resp = resp + chunk;
+					//console.log('data');
 				});
 				res.on('end', function () {
+					// console.log('data');
+					console.log("_authReq::end", res.statusCode, res.statusMessage);
 
 					switch(res.statusCode) {
 						case 400:
 						case 500:
-							reject(res.statusMessage);
+							reject({status: res.statusCode, message: res.statusMessage});
 							break;
 						case 401:
 							//reauthenticate and then retry.
 							// restAuthenticate()
 							// 	.then(create)
 							// 	.catch(reject);
+							reject({status: res.statusCode, message: res.statusMessage});
+							//reject(401);
 							break;
 						default:
 							//console.info(change.tableName + " " + res.statusCode + " " + res.statusMessage);
@@ -73,14 +83,19 @@ function NoREST(namespaceCfg) {
 
 
 			req.on('error', function (err) {
-				console.error(namespace.name, err);
+				console.error("_authReq::error", namespace.name, err);
+				reject(err);
 			});
 
 			if(payload) {
+				//console.log(" payload", payload);
 				req.write(payload);
+				console.log("_authReq::write");
 			}
 
 			req.end();
+			console.log("_authReq: req.end called.");
+
 		});
 	}
 
@@ -107,14 +122,16 @@ function NoREST(namespaceCfg) {
 					user = data;
 					console.log(namespace.name, "Authentication successful.");
 					//console.log(user);
+					return user;
 				})
 				.catch(function (err) {
 					console.error(namespace.name, err);
 				});
 		} else {
+			console.log(namespace.name, "Debug Authentication successful.");
 			return Promise.resolve({
-				userId: "fake",
-				access_token: "FAKE BEARER TOKEN"
+				userId: "debug",
+				access_token: "FAKEBEARERTOKEN"
 			});
 		}
 	}
@@ -150,6 +167,7 @@ function NoREST(namespaceCfg) {
 	this.authenticate = _authenticate;
 	this.authorized = _authorized;
 	this.noDbSchema = _getNoDbSchema;
+	this.user = user;
 }
 
 module.exports = function (namespace) {
