@@ -1,6 +1,6 @@
 {
   "name": "@noinfopath/noinfopath-node-libraries",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Provides various services that are shared by BEDS and DTC.",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,6 @@
     "bunyan": "^1.8.1",
     "es6-promise": "^3.2.1",
     "intercept-stdout": "^0.1.2",
-    "robe": "^1.0.0"
+    "mongo-oplog": "^1.0.1"
   }
 }

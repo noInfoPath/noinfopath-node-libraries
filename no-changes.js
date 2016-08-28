@@ -1,33 +1,45 @@
-var Robe = require('robe');
-function NoChangesMonitor(namespace) {
-	var db, oplog,
-		ns = namespace;
+var MongoOplog = require('mongo-oplog');
+
+function NoChangesMonitor(namespace, cb) {
+	var oplog, ns = namespace, callback = cb;
 
 
 	//console.log(Robe);
+	//, ns.config
 
+	this.run = function (cb) {
+		console.log("NoChangesMonitor::run");
+		var oplog = MongoOplog(ns.config.noChanges).tail(function () {
+			console.log("NoChangesMonitor::tailing");
 
-	this.run = function() {
-		console.log("run", ns);
-		//db = Robe.connect(ns.config);
+		});
 
-		//console.log("NoChangesMonitor", db);
-		//   	// get the oplog
-		//   	oplog = yield db.oplog();
-		//
-		// // start it
-		// yield oplog.start();
+		oplog.on('op', function (cb, data) {
+			console.log("NoChangesMonitor::op", arguments);
+			cb({
+				namespace: namespace.name,
+				version: data.ts.toNumber()
+			});
+		}.bind(null, cb));
 
-		// listen for any operation on any collection
-		// oplog.onAny(function(collectionName, operationType, data, metaData) {
-		//   console.log(collectionName, operationType, data, metaData);
-		// });
-	};
+		oplog.on('error', function (error) {
+			console.log("NoChangesMonitor::error", error);
+		});
+
+		oplog.on('end', function () {
+			console.log('NoChangesMonitor::Stream ended');
+		});
+
+		oplog.stop(function () {
+			console.log('NoChangesMonitor::server stopped');
+		});
+	}.bind(null, callback);
+
 }
 
-module.exports = function(namespace) {
-	console.log("Initializing NoChangesMonitor", namespace);
-	var monitor = new NoChangesMonitor(namespace);
+module.exports = function (namespace, cb) {
+	console.log("Initializing NoChangesMonitor");
+	var monitor = new NoChangesMonitor(namespace, cb);
 	monitor.run();
 	return monitor;
 };
