@@ -1,4 +1,5 @@
-var MongoOplog = require('mongo-oplog');
+var MongoOplog = require('mongo-oplog'),
+	NoBSONTimestamp = require("noinfopath-bson-timestamp");
 
 function NoChangesMonitor(namespace, cb) {
 	var oplog, ns = namespace, callback = cb;
@@ -18,7 +19,7 @@ function NoChangesMonitor(namespace, cb) {
 			console.log("NoChangesMonitor::op", arguments);
 			cb({
 				namespace: namespace.name,
-				version: data.ts.toNumber()
+				version: NoBSONTimestamp.toNumber(data.ts)
 			});
 		}.bind(null, cb));
 

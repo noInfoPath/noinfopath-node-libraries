@@ -31,12 +31,12 @@ function NoCRUDClient(ns) {
 			};
 
 		console.log(namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
-		return restClient.request(options, payload)
+		return restClient.request(options, payload, user)
 			.then(function(data){
 				return data;
 			})
 			.catch(function(err){
-				console.error(err);
+				throw err;
 			});
 
 	}
@@ -46,18 +46,18 @@ function NoCRUDClient(ns) {
 		var entity = noDbSchema[change.tableName],
 			resp = "",
 			id = change.data[entity.primaryKey[0]],
+			url = resolveUrl(namespace, change),
 			options = {
 				host: config.rest.host,
 				port: config.rest.port,
 				method: "GET",
-				path: "/odata/" + entity.entityName + "(guid'" + id + "')",
+				path: url + "(guid'" + id + "')",
 				headers: {
-					'Authorization': 'Bearer ' + user.access_token,
 					'Content-Type': 'application/json'
 				}
 			};
 
-		return rest.request(options)
+		return rest.request(options, undefined, user)
 			.then(function (data) {
 				return data.length ? data[0] : undefined;
 			});
@@ -149,9 +149,8 @@ function NoCRUDClient(ns) {
 						host: config.rest.host,
 						port: config.rest.port,
 						method: "PUT",
-						path: "/odata/" + entity.entityName + "(guid'" + id + "')",
+						path: url + "(guid'" + id + "')",
 						headers: {
-							'Authorization': 'Bearer ' + user.access_token,
 							'content-type': 'application/json;odata=verbose',
 							'Content-Length': payload.length
 						}
@@ -210,9 +209,8 @@ function NoCRUDClient(ns) {
 						host: config.rest.host,
 						port: config.rest.port,
 						method: "DELETE",
-						path: "/odata/" + entity.entityName + "(guid'" + id + "')",
+						path: url + "(guid'" + id + "')",
 						headers: {
-							'Authorization': 'Bearer ' + user.access_token,
 							'Content-Type': 'application/json'
 						}
 					},

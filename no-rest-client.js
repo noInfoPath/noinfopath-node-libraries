@@ -23,8 +23,8 @@ function NoREST(namespaceCfg) {
 		return this.request(options);
 	}
 
-	function _authReq(options, payload) {
-		console.log("_authReq::begin", options.host, options.port, options.method, options.path);
+	function _authReq(options, payload, ruser) {
+		console.log("_authReq::begin", options.host, options.port, options.method, options.path, "request user", !!ruser);
 
 		return new Promise(function (resolve, reject) {
 
@@ -35,7 +35,9 @@ function NoREST(namespaceCfg) {
 
 			//console.log("restCfg", (namespace.name ?   namespace.name + "/" : ""));
 
-			if(authCfg && user) {
+			if(ruser) {
+				options.headers.Authorization = ruser.sec.jwt.token_type + " " + ruser.sec.jwt.id_token;
+			}else if(authCfg && user) {
 				options.headers[authCfg.key] = authCfg.value.replace("userToken", user[authCfg.userToken]);
 			}
 
@@ -136,9 +138,12 @@ function NoREST(namespaceCfg) {
 		}
 	}
 
-	function _authorized() {
+	function _authorized(ruser) {
 		return new Promise(function (resolve, reject) {
-			if(user) {
+			if(ruser){
+				console.log(namespace.name, "Using request user.");
+				resolve(ruser);
+			} else if(user) {
 				console.log(namespace.name, "Using cached user login.");
 				resolve(user);
 			} else {
@@ -150,15 +155,15 @@ function NoREST(namespaceCfg) {
 		});
 	}
 
-	function _request(options, payload) {
-		return _authorized()
+	function _request(options, payload, ruser) {
+		return _authorized(ruser)
 			.then(_authReq.bind(this, options, payload))
 			.then(function (results) {
-				//console.log(namespace.name, results);
+				console.log("_authReq::success", namespace.name, results);
 				return results;
 			})
 			.catch(function (err) {
-				console.error(err);
+				throw err;
 			});
 	}
 
