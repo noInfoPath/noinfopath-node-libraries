@@ -3,11 +3,11 @@ function NoCRUDClient(ns) {
 		restClient = namespace.rest,
 		config = namespace.config;
 
-	function resolveUrl(ns, c){
+	function resolveUrl(ns, c, odata){
 		//console.log("resolveUrl", c);
-		 var url = (ns.name ? "/" + ns.name + "/" : "/") + c.tableName;
+		 var url = (ns.name ? "/" + ns.name + "/" : "/") + c.tableName + (odata || "");
 		 //.name, change ? change.table : ""
-		 console.log("url", url);
+
 		 return url;
 	}
 
@@ -43,56 +43,52 @@ function NoCRUDClient(ns) {
 	this.create = restCreate;
 
 	function restOne(user, change) {
-		var entity = noDbSchema[change.tableName],
-			resp = "",
+		var resp = "",
 			id = change.data[entity.primaryKey[0]],
 			url = resolveUrl(namespace, change),
 			options = {
 				host: config.rest.host,
 				port: config.rest.port,
 				method: "GET",
-				path: url + "(guid'" + id + "')",
+				path: url + "/" + id, //"(guid'" + id + "')",
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			};
 
-		return rest.request(options, undefined, user)
+		return restClient.request(options, undefined, user)
 			.then(function (data) {
 				return data.length ? data[0] : undefined;
 			});
 
-		// return new Promise(function (resolve, reject) {
-		// 	req = http.request(options, function (res) {
-		// 		log("restOne: " + change.tableName + "/" + id);
-		// 		res.setEncoding('utf8');
-		//
-		// 		res.on('data', function (chunk) {
-		// 			resp = resp + chunk;
-		// 		});
-		//
-		// 		res.on('end', function () {
-		// 			if(res.statusCode === 500) {
-		// 				reject(res.statusMessage);
-		// 			} else {
-		// 				info(entity.entityName + " " + res.statusCode + " " + res.statusMessage);
-		// 				//log(entity.entityName + " statusCode: ", JSON.stringify(res));
-		// 				resolve(res.statusCode === 404 ? {} : JSON.parse(resp));
-		// 			}
-		//
-		// 		});
-		// 	});
-		//
-		// 	req.on('error', reject);
-		//
-		// 	// write data to request body
-		// 	//req.write(payload);
-		// 	req.end();
-		//
-		// });
-
 	}
 	this.one = restOne;
+
+
+	function restRead(user, tableName, odataFilter) {
+		var url = resolveUrl(namespace, {tableName: tableName}, odataFilter),
+			options = {
+				host: config.rest.host,
+				port: config.rest.port,
+				method: "GET",
+				path: url,
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			};
+
+		return restClient.request(options, undefined, user)
+			.then(function (data) {
+				return data;
+			})
+			.catch(function(err){
+				console.error(err);
+				throw err;
+			});
+
+
+	}
+	this.read = restRead;
 
 	function restValidate() {
 		return new Promise(function (resolve, reject) {
