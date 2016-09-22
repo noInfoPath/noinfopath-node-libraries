@@ -134,64 +134,97 @@ function NoCRUDClient(ns) {
 
 
 	function restUpdate(user, change) {
-		function update() {
+		var restCfg = namespace.config.rest,
+			entity = namespace.config.schema[change.tableName],
+			pk = change.data[entity.primaryKey],
+			payload = JSON.stringify(change.data),
+			url = resolveUrl(namespace, change),
+			options = {
+				host: restCfg.host,
+				port: restCfg.port,
+				method: "PUT",
+				path: url + "/" + pk,
+				headers: {
+					'Content-Type': 'application/json',
+					'Content-Length': Buffer.byteLength(payload),
+					'strictSSL': false,
+					'rejectUnauthorized': false,
+					'agent': false
+				}
+			};
 
-			return new Promise(function (resolve, reject) {
-				var entity = noDbSchema[change.tableName],
-					resp = "",
-					payload = JSON.stringify(change.data),
-					id = change.data[entity.primaryKey[0]], //TODO: Fix this milti-part primary key issue
-					options = {
-						host: config.rest.host,
-						port: config.rest.port,
-						method: "PUT",
-						path: url + "(guid'" + id + "')",
-						headers: {
-							'content-type': 'application/json;odata=verbose',
-							'Content-Length': payload.length
-						}
-					},
-					req;
-
-				//console.log(change.data);
-
-				req = http.request(options, function (res) {
-					res.setEncoding('utf8');
-					res.on('data', function (chunk) {
-						resp = resp + chunk;
-					});
-
-					res.on('end', function () {
-						if(res.statusCode === 500 || res.statusCode === 400) {
-							reject(res.statusMessage);
-						} else {
-							info(entity.entityName + " " + res.statusCode + " " + res.statusMessage);
-							//log(entity.entityName + " statusCode: ", JSON.stringify(res));
-							resolve();
-						}
-					});
-				});
-
-				req.on('error', reject);
-
-				// write data to request body
-				req.write(payload);
-				req.end();
-
+		console.log(namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+		return restClient.request(options, payload, user)
+			.then(function(data){
+				return data;
+			})
+			.catch(function(err){
+				throw err;
 			});
 
-		}
 
-		return new Promise(function (resolve, reject) {
-			log(JSON.stringify(change));
-			restOne(change)
-				.then(function (data) {
-					change.before = data;
-					return update();
-				})
-				.then(resolve)
-				.catch(reject);
-		});
+
+		// function update() {
+		//
+		// 	return new Promise(function (resolve, reject) {
+		// 		console.log("ZZZZZ", change);
+		//
+		// 		var entity = noDbSchema[change.tableName],
+		// 			resp = "",
+		// 			payload = JSON.stringify(change.data),
+		// 			id = change.data[entity.primaryKey[0]], //TODO: Fix this milti-part primary key issue
+		// 			options = {
+		// 				host: config.rest.host,
+		// 				port: config.rest.port,
+		// 				method: "PUT",
+		// 				path: url + "(guid'" + id + "')",
+		// 				headers: {
+		// 					'content-type': 'application/json;odata=verbose',
+		// 					'Content-Length': payload.length
+		// 				}
+		// 			},
+		// 			req;
+		//
+		// 		//console.log(change.data);
+		//
+		// 		req = http.request(options, function (res) {
+		// 			res.setEncoding('utf8');
+		// 			res.on('data', function (chunk) {
+		// 				resp = resp + chunk;
+		// 			});
+		//
+		// 			res.on('end', function () {
+		// 				if(res.statusCode === 500 || res.statusCode === 400) {
+		// 					reject(res.statusMessage);
+		// 				} else {
+		// 					info(entity.entityName + " " + res.statusCode + " " + res.statusMessage);
+		// 					//log(entity.entityName + " statusCode: ", JSON.stringify(res));
+		// 					resolve();
+		// 				}
+		// 			});
+		// 		});
+		//
+		// 		req.on('error', reject);
+		//
+		// 		// write data to request body
+		// 		req.write(payload);
+		// 		req.end();
+		//
+		// 	});
+		//
+		// }
+		//
+		// return new Promise(function (resolve, reject) {
+		// 	console.log("AAAAAAA", JSON.stringify(change));
+		// 	restOne(user, change)
+		// 		.then(function (data) {
+		// 			console.log("YYYY", data);
+		// 			change.before = data;
+		// 			return update();
+		// 		})
+		// 		.then(resolve)
+		// 		.catch(reject);
+		// });
 	}
 	this.update = restUpdate;
 
