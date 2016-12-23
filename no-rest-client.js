@@ -23,23 +23,24 @@ function NoREST(namespaceCfg) {
 		return this.request(options);
 	}
 
-	function _authReq(options, payload, ruser) {
-		console.log("_authReq::begin", options.host, options.port, options.method, options.path, "request user", !!ruser);
-
+	function _authReq(options, payload) {
+		console.log("_authReq::begin", options.host, options.port, options.method, options.path);
 		return new Promise(function (resolve, reject) {
 
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
 				resp = "",
-				req;
+				req,
+				data = JSON.parse(payload);
 
 			//console.log("restCfg", (namespace.name ?   namespace.name + "/" : ""));
 
-			if(ruser) {
-				options.headers.Authorization = ruser.sec.jwt.token_type + " " + ruser.sec.jwt.id_token;
-			}else if(authCfg && user) {
-				options.headers[authCfg.key] = authCfg.value.replace("userToken", user[authCfg.userToken]);
-			}
+			// if(ruser) {
+			// 	options.headers.Authorization = ruser.sec.jwt.token_type + " " + ruser.sec.jwt.id_token;
+			// }else if(authCfg && user) {
+			// 	options.headers[authCfg.key] = authCfg.value.replace("userToken", user[authCfg.userToken]);
+			// }
+			options.headers.Authorization = "Bearer "  + data.jwt;
 
 			options.headers.connection = "keep-alive";
 
@@ -155,11 +156,12 @@ function NoREST(namespaceCfg) {
 		});
 	}
 
-	function _request(options, payload, ruser) {
-		return _authorized(ruser)
-			.then(_authReq.bind(this, options, payload))
+	function _request(options, payload) {
+		return _authReq(options, payload)
+			//_authorized(ruser)
+			//.then(_authReq.bind(this, options, payload))
 			.then(function (results) {
-				console.log("_authReq::success", namespace.name, results);
+				console.log("_authReq::success", namespace.name, {status: 1, message:  "Operation Successful", results: results});
 				return results;
 			})
 			.catch(function (err) {
