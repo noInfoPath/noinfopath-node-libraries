@@ -5,14 +5,42 @@ function NoCRUDClient(ns) {
 
 	function resolveUrl(ns, c, odata){
 		//console.log("resolveUrl", c);
-		 var url = (ns.name ? "/" + ns.name + "/" : "/") + c.tableName + (odata || "");
-		 //.name, change ? change.table : ""
 
+		var	restCfg = ns.config.rest,
+			entity = ns.config.schema[c.tableName],
+			pk = c.data[entity.primaryKey],
+		 	url;
+
+		if(restCfg.apiPrefix) {
+			url = restCfg.apiPrefix;
+		} else {
+			url = ns.name ? "/" + ns.name + "/" : "/";
+		}
+
+		if(restCfg.type === "MS-ODATA2") {
+			switch(c.changeType) {
+				case "U":
+				case "D":
+					url +=  c.tableName + "(guid'" + pk + "')";
+					break;
+				default:
+					url +=  c.tableName + (odata || "");
+			}
+		} else{
+			url +=  c.tableName + (odata || "");
+		}
+
+
+
+
+
+		 //.name, change ? change.table : ""
+		 console.log("resolveUrl", url);
 		 return url;
 	}
 
 	function restCreate(user, change) {
-		//console.log("change", change);
+		console.log("restCreate", this, user, change);
 		var restCfg = namespace.config.rest,
 			payload = JSON.stringify(change.data),
 			url = resolveUrl(namespace, change),
@@ -30,7 +58,7 @@ function NoCRUDClient(ns) {
 				}
 			};
 
-		console.log(namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+		console.log("restCreate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
 		return restClient.request(options, payload, user)
 			.then(function(data){
 				return data;
@@ -134,33 +162,44 @@ function NoCRUDClient(ns) {
 
 
 	function restUpdate(user, change) {
-		var restCfg = namespace.config.rest,
-			entity = namespace.config.schema[change.tableName],
-			pk = change.data[entity.primaryKey],
-			payload = JSON.stringify(change.data),
-			url = resolveUrl(namespace, change),
-			options = {
-				host: restCfg.host,
-				port: restCfg.port,
-				method: "PUT",
-				path: url + "/" + pk,
-				headers: {
-					'Content-Type': 'application/json',
-					'Content-Length': Buffer.byteLength(payload),
-					'strictSSL': false,
-					'rejectUnauthorized': false,
-					'agent': false
-				}
-			};
+		try{
+			// var r
+			// 	entity = namespace.config.schema[change.tableName],
+			// 	pk = change.data[entity.primaryKey],
+			// 	payload = JSON.stringify(change.data),
+			// 	url = resolveUrl(namespace, change),
+			var	restCfg = namespace.config.rest,
+				url = resolveUrl(namespace, change),
+				payload = JSON.stringify(change.data),
+				options = {
+					host: restCfg.host,
+					port: restCfg.port,
+					method: "PATCH",
+					path: url,
+					headers: {
+						'Content-Type': 'application/json;odata=verbose',
+						'Content-Length': Buffer.byteLength(payload),
+						'strictSSL': false,
+						'rejectUnauthorized': false,
+						'agent': false,
+						'Authorization': 'Bearer ' + user.jwt
+					}
+				};
 
-		console.log(namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
-		return restClient.request(options, payload, user)
-			.then(function(data){
-				return data;
-			})
-			.catch(function(err){
-				throw err;
-			});
+			console.log("restUpdate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+			return restClient.request(options, payload, user)
+				.then(function(data){
+					return data;
+				})
+				.catch(function(err){
+					console.error(err);
+					throw err;
+				});
+
+		}catch(err) {
+			console.error(err);
+			throw err;
+		}
 
 
 

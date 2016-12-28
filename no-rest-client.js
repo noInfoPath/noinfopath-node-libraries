@@ -25,13 +25,13 @@ function NoREST(namespaceCfg) {
 
 	function _authReq(options, payload) {
 		console.log("_authReq::begin", options.host, options.port, options.method, options.path);
-		return new Promise(function (resolve, reject) {
 
+		return new Promise(function (resolve, reject) {
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
 				resp = "",
 				req,
-				data = JSON.parse(payload);
+				data = payload ? JSON.parse(payload) : undefined;
 
 			//console.log("restCfg", (namespace.name ?   namespace.name + "/" : ""));
 
@@ -40,10 +40,13 @@ function NoREST(namespaceCfg) {
 			// }else if(authCfg && user) {
 			// 	options.headers[authCfg.key] = authCfg.value.replace("userToken", user[authCfg.userToken]);
 			// }
-			options.headers.Authorization = "Bearer "  + data.jwt;
-
+			if(!options.headers.Authorization && data && data.jwt ) {
+				options.headers.Authorization = "Bearer "  + data.jwt
+			}
+			
 			options.headers.connection = "keep-alive";
 
+			//console.log("XXXXXXX",options.headers);
 			//console.log("request", options);
 
 			req = http.request(options, function (res) {
@@ -91,9 +94,9 @@ function NoREST(namespaceCfg) {
 			});
 
 			if(payload) {
+				console.log("_authReq::write", payload);
 				//console.log(" payload", payload);
 				req.write(payload);
-				console.log("_authReq::write");
 			}
 
 			req.end();

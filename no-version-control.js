@@ -63,52 +63,52 @@ function NoVersionManager(namespaceCfg) {
 	}
 	this.getDataByVersion = _getVersionedData;
 
-	function _applyChange(change) {
+	function _applyChange(trans, change) {
 		console.log("Change type: ", change.changeType);
 
 		var op = CUD[change.changeType];
 
-		return rest.authenticate()
-			.then(function(user) {
-				console.log("user", user.userId);
-				return op(user, change);
-			})
+		//return rest.authenticate()
+		//	.then(function(user) {
+				//console.log("user", user.userId);
+			//})
+		return op({jwt: trans.jwt}, change)
 			.then(function (results) {
 				console.log(namespace.name, results ? results.length : 0);
 				return results;
 			})
 			.catch(function (err) {
-				console.error(err);
+				console.error("ERROR:", err);
 			});
 	}
 
-	function _recurseChanges(changes, current, resolve, reject) {
-		var change = changes[current++];
-
+	function _recurseChanges(trans, current, resolve, reject) {
+		var change = trans.changes[current++];
 		if(change) {
-			_applyChange(change)
-				.then(_recurseChanges.bind(null, changes, current, resolve, reject))
+			_applyChange(trans, change)
+				.then(_recurseChanges.bind(this, trans, current, resolve, reject))
 				.catch(function(err){
-					_recurseChanges(changes, current, resolve, reject);
+					console.error("_recurseChanges::error", err);
+					_recurseChanges.call(this, trans, current, resolve, reject);
 				});
 		}else{
 			resolve();
 		}
-
 
 	}
 
 	function _processTransaction(trans){
 		var promises = [];
 
-		console.log("Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
+		console.log(trans.namespace, "Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
 
-		return new Promise(_recurseChanges.bind(null, trans.changes, 0))
+		return new Promise(_recurseChanges.bind(this, trans, 0))
 			.then(function(data){
-				console.log("transaction processed.");
+				console.log("transaction processed.", data);
 				namespace.trans.markProcessed(trans);
 			})
 			.catch(function(err){
+				console.error(err);
 				namespace.trans.markError(trans);
 			});
 	}
@@ -122,7 +122,7 @@ function NoVersionManager(namespaceCfg) {
 					_recurseTransactions(transactions, current, resolve, reject);
 				})
 				.catch(function(err){
-					console.error(err);
+					console.error("XXXXXXXXX", err);
 					_recurseTransactions(transactions, current, resolve, reject);
 				});
 
@@ -133,11 +133,10 @@ function NoVersionManager(namespaceCfg) {
 
 	function _processTransactions(transactions) {
 		var promises = [];
-		console.log(namespace.name, " has ", transactions.length, " pending transactions.");
-
+		console.log("_processTransactions", namespace.name, " has ", transactions.length, " pending transactions.");
 		return new Promise(_recurseTransactions.bind(this, transactions, 0));
 	}
-	this.pushChanges = _processTransactions.bind(this);
+	this.pushChanges = _processTransactions;
 }
 
 module.exports = function (namespace) {

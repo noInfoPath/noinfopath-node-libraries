@@ -1,5 +1,5 @@
 
-function NoTransactionManager(namespaceCfg) {
+function NoTransactionManager(namespaceCfg, jwt) {
 	var namespace = namespaceCfg;
 
 	function _savePendingTransactions(transaction){
@@ -12,7 +12,8 @@ function NoTransactionManager(namespaceCfg) {
 				path: restCfg.changesUri,
 				headers: {
 					'Content-Type': 'application/json',
-					'Content-Length': payload.length
+					'Content-Length': payload.length,
+					'Authorization': "Bearer "  + namespace.jwt
 				}
 			};
 
@@ -33,7 +34,8 @@ function NoTransactionManager(namespaceCfg) {
 				method: "GET",
 				path: url,
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Authorization': "Bearer "  + namespace.jwt
 				}
 			}
 		;
@@ -51,7 +53,7 @@ function NoTransactionManager(namespaceCfg) {
 	this.pendingTransactions = getPendingTransactions;
 
 	function markTransactionState(transaction, state) {
-		var data = {state: state},
+		var data = transaction,
 			restCfg = namespace.config.rest,
 			payload = JSON.stringify(data),
 			options = {
@@ -61,9 +63,13 @@ function NoTransactionManager(namespaceCfg) {
 				path: restCfg.changesUri + "/" + transaction.ChangeID,
 				headers: {
 					'Content-Type': 'application/json',
-					'Content-Length': payload.length
+					'Authorization': 'Bearer ' + namespace.jwt
 				}
 			};
+
+			payload.state = state;
+
+			options.headers['Content-Length'] = payload.length;
 
 		console.log("markTransactionState", state, transaction);
 
@@ -176,6 +182,6 @@ function NoTransactionManager(namespaceCfg) {
 // 	}
 }
 
-module.exports = function (namespace) {
-	return new NoTransactionManager(namespace);
+module.exports = function (namespace, jwt) {
+	return new NoTransactionManager(namespace, jwt);
 };
