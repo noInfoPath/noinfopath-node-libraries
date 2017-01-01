@@ -45,7 +45,8 @@ function NoVersionManager(namespaceCfg) {
 				method: "GET",
 				path: url,
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + version.jwt
 				}
 			}
 		;
