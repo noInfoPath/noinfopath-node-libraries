@@ -1,11 +1,12 @@
 var colors = require('colors/safe');
 
-function NoRemoteChangeMonitor(namespace, cb) {
+function NoRemoteChangeMonitor(namespace, cb, errCb) {
 	var ns = namespace,
 		callback = cb,
+		errorCb = errCb,
 		timeLoop = 0,
 		oneSecond = 1000,
-		maxLoops = 10;
+		maxLoops = 5;
 
 	function _getRemoteDatabaseVersion() {
 		var url = ns.config.rest.versionUri,
@@ -27,10 +28,7 @@ function NoRemoteChangeMonitor(namespace, cb) {
 				.then(function (data) {
 					callback(data);
 				})
-				.catch(function(err){
-					console.error(err);
-					throw err;
-				});
+				.catch(errorCb);
 	}
 
 	function _timeout() {
@@ -44,20 +42,19 @@ function NoRemoteChangeMonitor(namespace, cb) {
 			.then(function(){
 				setTimeout(_timeout, nextTimeout);
 			})
-			.catch(function(err){
-				console.error(err);
-			})
+			.catch(errorCb)
 	}
 
-	this.run = function (cb) {
+
+	function run(cb, errCb) {
 		console.log("NoRemoteChangeMonitor::run", ns.name);
 		setTimeout(_timeout, oneSecond);
 
-	}.bind(null, callback);
-
+	};
+	this.run = run.bind(null, callback, errCb);
 }
 
-module.exports = function (namespace, cb) {
+module.exports = function (namespace, cb, errCb) {
 	console.log("Initializing NoRemoteChangeMonitor for", namespace.name);
 	var monitor = new NoRemoteChangeMonitor(namespace, cb);
 	monitor.run();
