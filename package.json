@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "bunyan": "^1.8.1",
+    "colors": "^1.1.2",
     "es6-promise": "^3.2.1",
     "intercept-stdout": "^0.1.2",
     "mongo-oplog": "^1.0.1",

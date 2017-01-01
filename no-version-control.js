@@ -79,17 +79,19 @@ function NoVersionManager(namespaceCfg) {
 			})
 			.catch(function (err) {
 				console.error("ERROR:", err);
+				throw err;
 			});
 	}
 
 	function _recurseChanges(trans, current, resolve, reject) {
-		var change = trans.changes[current++];
+		var change = trans.changes[--current];
 		if(change) {
 			_applyChange(trans, change)
 				.then(_recurseChanges.bind(this, trans, current, resolve, reject))
 				.catch(function(err){
 					console.error("_recurseChanges::error", err);
-					_recurseChanges.call(this, trans, current, resolve, reject);
+					reject(err);
+					//_recurseChanges.call(this, trans, current, resolve, reject);
 				});
 		}else{
 			resolve();
@@ -102,7 +104,7 @@ function NoVersionManager(namespaceCfg) {
 
 		console.log(trans.namespace, "Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
 
-		return new Promise(_recurseChanges.bind(this, trans, 0))
+		return new Promise(_recurseChanges.bind(this, trans, trans.changes.length))
 			.then(function(data){
 				console.log("transaction processed.", data);
 				namespace.trans.markProcessed(trans);

@@ -1,12 +1,23 @@
 var Promise = require('es6-promise').Promise,
 	http = require('http'),
-	querystring = require('querystring');
+	querystring = require('querystring'),
+	colors = require('colors/safe')
+;
 
 function NoREST(namespaceCfg) {
 	var namespace = namespaceCfg,
 		config = namespace.config,
 		user = null;
 
+	function _parsePayload(i) {
+		var o = i;
+
+		if(i && ["{","["].indexOf(i[0]) > -1) {
+			o = JSON.parse(i);
+		}
+
+		return o;
+	}
 	function _getNoDbSchema() {
 		console.log("getNoDbSchema");
 		var options = {
@@ -23,27 +34,21 @@ function NoREST(namespaceCfg) {
 		return this.request(options);
 	}
 
-	function _authReq(options, payload) {
-		console.log("_authReq::begin", options.host, options.port, options.method, options.path);
-
+	function _authReq(options, payload, noAuthReq) {
+		console.info(colors.white.dim("HTTP Begin Request"), colors.white.dim(options.host), colors.white.dim(options.port), colors.white.dim(options.method), colors.white.dim(options.path));
 		return new Promise(function (resolve, reject) {
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
 				resp = "",
 				req,
-				data = payload ? JSON.parse(payload) : undefined;
+				data = _parsePayload(payload);
 
 			//console.log("restCfg", (namespace.name ?   namespace.name + "/" : ""));
 
-			// if(ruser) {
-			// 	options.headers.Authorization = ruser.sec.jwt.token_type + " " + ruser.sec.jwt.id_token;
-			// }else if(authCfg && user) {
-			// 	options.headers[authCfg.key] = authCfg.value.replace("userToken", user[authCfg.userToken]);
-			// }
-			if(!options.headers.Authorization && data && data.jwt ) {
+			if(!noAuthReq && !options.headers.Authorization && data && data.jwt ) {
 				options.headers.Authorization = "Bearer "  + data.jwt
 			}
-			
+
 			options.headers.connection = "keep-alive";
 
 			//console.log("XXXXXXX",options.headers);
@@ -57,7 +62,7 @@ function NoREST(namespaceCfg) {
 				});
 				res.on('end', function () {
 					// console.log('data');
-					console.log("_authReq::end", res.statusCode, res.statusMessage);
+					console.info(colors.white.dim("HTTP End Request"), colors.white.dim(res.statusCode), colors.white.dim(res.statusMessage));
 
 					switch(res.statusCode) {
 						case 400:
@@ -89,28 +94,28 @@ function NoREST(namespaceCfg) {
 
 
 			req.on('error', function (err) {
-				console.error("_authReq::error", namespace.name, err);
+				console.error("HTTP Request Rrror", namespace.name, err);
 				reject(err);
 			});
 
 			if(payload) {
-				console.log("_authReq::write", payload);
+				console.info(colors.white.dim("HTTP Sending"), colors.white.dim(payload.length), colors.white.dim("bytes of data"));
 				//console.log(" payload", payload);
 				req.write(payload);
 			}
 
 			req.end();
-			console.log("_authReq: req.end called.");
+			//console.log("_authReq: req.end called.");
 
 		});
 	}
 
 	function _authenticate() {
-		console.info(namespace.name, "Authenticating access to REST API");
+		console.info(colors.white.dim("Authenticating access to"), colors.white.dim(namespace.name), colors.white.dim("REST API"));
 
 		var restCfg = namespace.rest;
-
 		if(restCfg.auth) {
+
 			var payload = querystring.stringify(restCfg.auth.payload),
 				options = {
 					host: restCfg.host,
@@ -123,15 +128,15 @@ function NoREST(namespaceCfg) {
 					}
 				};
 
-			return _authReq(options, payload)
+			return _authReq(options, payload, true)
 				.then(function (data) {
+					console.log(colors.white.dim(namespace.name), colors.white.dim("Authentication successful for"), colors.white.dim(data.username));
 					user = data;
-					console.log(namespace.name, "Authentication successful.");
 					//console.log(user);
 					return user;
 				})
 				.catch(function (err) {
-					console.error(namespace.name, err);
+					console.error("Authentication Failed.", namespace.name, err);
 				});
 		} else {
 			console.log(namespace.name, "Debug Authentication successful.");
@@ -160,11 +165,13 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _request(options, payload) {
+		//console.log("CCCCCC", options);
 		return _authReq(options, payload)
+
 			//_authorized(ruser)
 			//.then(_authReq.bind(this, options, payload))
 			.then(function (results) {
-				console.log("_authReq::success", namespace.name, {status: 1, message:  "Operation Successful", results: results});
+				//console.log("_authReq::success", namespace.name, {status: 1, message:  "Operation Successful", results: results});
 				return results;
 			})
 			.catch(function (err) {
@@ -178,6 +185,7 @@ function NoREST(namespaceCfg) {
 	this.authorized = _authorized;
 	this.noDbSchema = _getNoDbSchema;
 	this.user = user;
+
 }
 
 module.exports = function (namespace) {

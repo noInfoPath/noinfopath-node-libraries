@@ -4,17 +4,21 @@ function NoCRUDClient(ns) {
 		config = namespace.config;
 
 	function resolveUrl(ns, c, odata){
-		//console.log("resolveUrl", c);
+		console.log("resolveUrl", ns.name, c.tableName);
 
 		var	restCfg = ns.config.rest,
 			entity = ns.config.schema[c.tableName],
 			pk = c.data[entity.primaryKey],
 		 	url;
 
-		if(restCfg.apiPrefix) {
-			url = restCfg.apiPrefix;
+		if(entity.endpoint) {
+			url = entity.endpoint.uri
 		} else {
-			url = ns.name ? "/" + ns.name + "/" : "/";
+			if(restCfg.apiPrefix) {
+				url = restCfg.apiPrefix;
+			} else {
+				url = ns.name ? "/" + ns.name + "/" : "/";
+			}
 		}
 
 		if(restCfg.type === "MS-ODATA2") {
@@ -39,26 +43,49 @@ function NoCRUDClient(ns) {
 		 return url;
 	}
 
+	function resolveRestConfig(ns, c) {
+		var entity = ns.config.schema[c.tableName];
+
+
+		return entity.endpoint || namespace.config.rest;
+	}
+
+	function resolveContentTransferMethod(options, l) {
+
+		if(l > 4000) {
+			options.headers['Transfer-Encoding'] = 'chunked';
+		} else {
+			options.headers['Content-Length'] = l;
+		}
+
+		return options;
+	}
+
 	function restCreate(user, change) {
-		console.log("restCreate", this, user, change);
-		var restCfg = namespace.config.rest,
-			payload = JSON.stringify(change.data),
+		console.log("restCreate", user);
+
+		var	restCfg = resolveRestConfig(namespace, change),
 			url = resolveUrl(namespace, change),
+			payload = JSON.stringify(change.data),
 			options = {
 				host: restCfg.host,
 				port: restCfg.port,
 				method: "POST",
 				path: url,
 				headers: {
-					'Content-Type': 'application/json',
-					'Content-Length': Buffer.byteLength(payload),
+					'Content-Type': 'application/json;odata=verbose',
 					'strictSSL': false,
 					'rejectUnauthorized': false,
-					'agent': false
+					'agent': false,
+					'Authorization': 'Bearer ' + user.jwt
 				}
 			};
 
+		options = resolveContentTransferMethod(options, Buffer.byteLength(payload) );
+
+
 		console.log("restCreate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+
 		return restClient.request(options, payload, user)
 			.then(function(data){
 				return data;
@@ -71,14 +98,12 @@ function NoCRUDClient(ns) {
 	this.create = restCreate;
 
 	function restOne(user, change) {
-		var resp = "",
-			id = change.data[entity.primaryKey[0]],
-			url = resolveUrl(namespace, change),
+		var url = resolveUrl(namespace, change),
 			options = {
 				host: config.rest.host,
 				port: config.rest.port,
 				method: "GET",
-				path: url + "/" + id, //"(guid'" + id + "')",
+				path: url,
 				headers: {
 					'Content-Type': 'application/json'
 				}
@@ -86,7 +111,8 @@ function NoCRUDClient(ns) {
 
 		return restClient.request(options, undefined, user)
 			.then(function (data) {
-				return data.length ? data[0] : undefined;
+
+				return data.length ? data[0] : data;
 			});
 
 	}
@@ -178,13 +204,15 @@ function NoCRUDClient(ns) {
 					path: url,
 					headers: {
 						'Content-Type': 'application/json;odata=verbose',
-						'Content-Length': Buffer.byteLength(payload),
 						'strictSSL': false,
 						'rejectUnauthorized': false,
 						'agent': false,
 						'Authorization': 'Bearer ' + user.jwt
 					}
 				};
+
+			options = resolveContentTransferMethod(options, Buffer.byteLength(payload) );
+
 
 			console.log("restUpdate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
 			return restClient.request(options, payload, user)
@@ -268,46 +296,66 @@ function NoCRUDClient(ns) {
 	this.update = restUpdate;
 
 	function restDelete(user, change) {
-		function destroy() {
-			return new Promise(function (resolve, reject) {
-				var entity = noDbSchema[change.tableName],
-					resp = "",
-					id = change.data[entity.primaryKey[0]],
-					options = {
-						host: config.rest.host,
-						port: config.rest.port,
-						method: "DELETE",
-						path: url + "(guid'" + id + "')",
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					},
-					req = http.request(options, function (res) {
-						res.setEncoding('utf8');
+		function destroy(user, change) {
+			var url = resolveUrl(namespace, change),
+				options = {
+					host: config.rest.host,
+					port: config.rest.port,
+					method: "DELETE",
+					path: url,
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				};
 
-						res.on('data', function (chunk) {
-							resp = resp + chunk;
-						});
+			return restClient.request(options, undefined, user)
+				.then(function (data) {
+					return data;
+				})
+				.catch(function(err){
+					console.error(err);
+					throw err;
+				});
 
-						res.on('end', function () {
-							resolve();
-						});
-					});
-
-				req.on('error', reject);
-
-				// write data to request body
-				//req.write(payload);
-				req.end();
-
-			});
+			// return new Promise(function (resolve, reject) {
+			// 	var entity = noDbSchema[change.tableName],
+			// 		resp = "",
+			// 		id = change.data[entity.primaryKey[0]],
+			// 		options = {
+			// 			host: config.rest.host,
+			// 			port: config.rest.port,
+			// 			method: "DELETE",
+			// 			path: url + "(guid'" + id + "')",
+			// 			headers: {
+			// 				'Content-Type': 'application/json'
+			// 			}
+			// 		},
+			// 		req = http.request(options, function (res) {
+			// 			res.setEncoding('utf8');
+			//
+			// 			res.on('data', function (chunk) {
+			// 				resp = resp + chunk;
+			// 			});
+			//
+			// 			res.on('end', function () {
+			// 				resolve();
+			// 			});
+			// 		});
+			//
+			// 	req.on('error', reject);
+			//
+			// 	// write data to request body
+			// 	//req.write(payload);
+			// 	req.end();
+			//
+			// });
 		}
 
 		return new Promise(function (resolve, reject) {
-			restOne(change)
+			restOne(user, change)
 				.then(function (data) {
 					change.before = data;
-					return destroy();
+					return destroy(user, change);
 				})
 				.then(resolve)
 				.catch(reject);

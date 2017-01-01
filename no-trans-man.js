@@ -2,6 +2,18 @@
 function NoTransactionManager(namespaceCfg, jwt) {
 	var namespace = namespaceCfg;
 
+	function resolveContentTransferMethod(options, l) {
+
+		if(l > 4000) {
+			options.headers['Transfer-Encoding'] = 'chunked';
+		} else {
+			options.headers['Content-Length'] = l;
+		}
+
+		return options;
+	}
+
+
 	function _savePendingTransactions(transaction){
 		var restCfg = namespace.config.rest,
 			payload = JSON.stringify(transaction),
@@ -12,10 +24,11 @@ function NoTransactionManager(namespaceCfg, jwt) {
 				path: restCfg.changesUri,
 				headers: {
 					'Content-Type': 'application/json',
-					'Content-Length': payload.length,
 					'Authorization': "Bearer "  + namespace.jwt
 				}
 			};
+
+		options = resolveContentTransferMethod(options, payload.length)
 
 		return namespace.rest.request(options, payload);
 	}
@@ -55,7 +68,6 @@ function NoTransactionManager(namespaceCfg, jwt) {
 	function markTransactionState(transaction, state) {
 		var data = transaction,
 			restCfg = namespace.config.rest,
-			payload = JSON.stringify(data),
 			options = {
 				host: restCfg.host,
 				port: restCfg.port,
@@ -65,11 +77,14 @@ function NoTransactionManager(namespaceCfg, jwt) {
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + namespace.jwt
 				}
-			};
+			},
+			payload;
 
-			payload.state = state;
+		data.state = state;
 
-			options.headers['Content-Length'] = payload.length;
+		payload = JSON.stringify(data);
+
+		options = resolveContentTransferMethod(options, payload.length)
 
 		console.log("markTransactionState", state, transaction);
 

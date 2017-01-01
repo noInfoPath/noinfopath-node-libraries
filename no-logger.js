@@ -2,7 +2,8 @@ function NoLogger(c) {
 	var config = c,
 		intercept = require("intercept-stdout"),
 		bunyan = require('bunyan'),
-		logger = new bunyan(config.logging.bunyan)
+		logger = new bunyan(config.logging.bunyan),
+		colors = require('colors/safe')
 		;
 
 		// config.bunyan.streams. push({
@@ -22,7 +23,7 @@ function NoLogger(c) {
 	function handleError(txt) {
 		var m = message(txt);
 		if(config.logging.bunyan.enabled) logger.error(m);
-		return m;
+		return colors.red(m);
 	}
 
 	function handleOthers(txt){
@@ -35,5 +36,7 @@ function NoLogger(c) {
 }
 
 module.exports = function(config) {
+	//console.log(config);
+	if(!config.logging.bunyan.enabled) console.warn("WARNING: Bunyan is disabled");
 	return new NoLogger(config);
 };
