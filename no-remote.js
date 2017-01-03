@@ -6,7 +6,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 		errorCb = errCb,
 		timeLoop = 0,
 		oneSecond = 1000,
-		maxLoops = 5;
+		maxLoops = 3;
 
 	function _getRemoteDatabaseVersion() {
 		var url = ns.config.rest.versionUri,
@@ -35,7 +35,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 
 		var nextTimeout = Math.trunc(Math.exp(++timeLoop)) * 1000;
 		console.info(colors.white.dim("RemoteChaneMonitor for "), colors.white.dim(ns.name), colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
-		if(timeLoop>maxLoops) timeLoop = 1
+		if(timeLoop>maxLoops) timeLoop = 0
 
 		//do stuff.
 		_getRemoteDatabaseVersion()
