@@ -7,7 +7,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 		timeLoop = 0,
 		oneSecond = 1000,
 		maxLoops = 3
-		lastVersion = {};
+		lastVersion = {namespace: ns.name, version: 0};
 
 	function _getRemoteDatabaseVersion() {
 		var url = ns.config.rest.versionUri,
@@ -27,8 +27,9 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 
 			return ns.rest.request(options, undefined, user)
 				.then(function (data) {
+					data.namespace = ns.name;
 					console.info("Version Check", "current", lastVersion, "new", data);
-					if(lastVersion.version !== data.version) {
+					if(lastVersion.version < data.version) {
 						lastVersion.version = data.version;
 						callback(data);
 					}
