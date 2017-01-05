@@ -136,7 +136,7 @@ function NoCRUDClient(ns) {
 				return data;
 			})
 			.catch(function(err){
-				console.error(err);
+				console.error("restRead", err);
 				throw err;
 			});
 
@@ -220,78 +220,14 @@ function NoCRUDClient(ns) {
 					return data;
 				})
 				.catch(function(err){
-					console.error(err);
+					console.error("restUpdate:inner", err);
 					throw err;
 				});
 
 		}catch(err) {
-			console.error(err);
+			console.error("restUpdate:outer", err);
 			throw err;
 		}
-
-
-
-		// function update() {
-		//
-		// 	return new Promise(function (resolve, reject) {
-		// 		console.log("ZZZZZ", change);
-		//
-		// 		var entity = noDbSchema[change.tableName],
-		// 			resp = "",
-		// 			payload = JSON.stringify(change.data),
-		// 			id = change.data[entity.primaryKey[0]], //TODO: Fix this milti-part primary key issue
-		// 			options = {
-		// 				host: config.rest.host,
-		// 				port: config.rest.port,
-		// 				method: "PUT",
-		// 				path: url + "(guid'" + id + "')",
-		// 				headers: {
-		// 					'content-type': 'application/json;odata=verbose',
-		// 					'Content-Length': payload.length
-		// 				}
-		// 			},
-		// 			req;
-		//
-		// 		//console.log(change.data);
-		//
-		// 		req = http.request(options, function (res) {
-		// 			res.setEncoding('utf8');
-		// 			res.on('data', function (chunk) {
-		// 				resp = resp + chunk;
-		// 			});
-		//
-		// 			res.on('end', function () {
-		// 				if(res.statusCode === 500 || res.statusCode === 400) {
-		// 					reject(res.statusMessage);
-		// 				} else {
-		// 					info(entity.entityName + " " + res.statusCode + " " + res.statusMessage);
-		// 					//log(entity.entityName + " statusCode: ", JSON.stringify(res));
-		// 					resolve();
-		// 				}
-		// 			});
-		// 		});
-		//
-		// 		req.on('error', reject);
-		//
-		// 		// write data to request body
-		// 		req.write(payload);
-		// 		req.end();
-		//
-		// 	});
-		//
-		// }
-		//
-		// return new Promise(function (resolve, reject) {
-		// 	console.log("AAAAAAA", JSON.stringify(change));
-		// 	restOne(user, change)
-		// 		.then(function (data) {
-		// 			console.log("YYYY", data);
-		// 			change.before = data;
-		// 			return update();
-		// 		})
-		// 		.then(resolve)
-		// 		.catch(reject);
-		// });
 	}
 	this.update = restUpdate;
 
@@ -313,42 +249,9 @@ function NoCRUDClient(ns) {
 					return data;
 				})
 				.catch(function(err){
-					console.error(err);
+					console.error("restDelete", err);
 					throw err;
 				});
-
-			// return new Promise(function (resolve, reject) {
-			// 	var entity = noDbSchema[change.tableName],
-			// 		resp = "",
-			// 		id = change.data[entity.primaryKey[0]],
-			// 		options = {
-			// 			host: config.rest.host,
-			// 			port: config.rest.port,
-			// 			method: "DELETE",
-			// 			path: url + "(guid'" + id + "')",
-			// 			headers: {
-			// 				'Content-Type': 'application/json'
-			// 			}
-			// 		},
-			// 		req = http.request(options, function (res) {
-			// 			res.setEncoding('utf8');
-			//
-			// 			res.on('data', function (chunk) {
-			// 				resp = resp + chunk;
-			// 			});
-			//
-			// 			res.on('end', function () {
-			// 				resolve();
-			// 			});
-			// 		});
-			//
-			// 	req.on('error', reject);
-			//
-			// 	// write data to request body
-			// 	//req.write(payload);
-			// 	req.end();
-			//
-			// });
 		}
 
 		return new Promise(function (resolve, reject) {

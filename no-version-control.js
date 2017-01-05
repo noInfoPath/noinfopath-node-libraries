@@ -25,7 +25,7 @@ function NoVersionManager(namespaceCfg) {
 				}
 			}
 		;
-		console.log(restCfg);
+		//console.log(restCfg);
 		if(!!restCfg.versionUri) {
 			console.info(namespace.name + " Checking for change version");
 			return namespace.rest.request(options);
@@ -51,9 +51,10 @@ function NoVersionManager(namespaceCfg) {
 			}
 		;
 
+		//console.log("version.jwt", version.jwt);
 		return namespace.rest.request(options)
 			.then(function(data){
-				console.log("_getVersionedData", data);
+				console.log("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes");
 
 				return data;
 			})
@@ -125,12 +126,12 @@ function NoVersionManager(namespaceCfg) {
 					_recurseTransactions(transactions, current, resolve, reject);
 				})
 				.catch(function(err){
-					console.error("XXXXXXXXX", err);
+					console.error("_recurseTransactions error", err);
 					_recurseTransactions(transactions, current, resolve, reject);
 				});
 
 		}else{
-			resolve();
+			resolve(current - 1);
 		}
 	}
 

@@ -29,33 +29,23 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 				.then(function (data) {
 					data.namespace = ns.name;
 					console.info("Version Check", "current", lastVersion, "new", data);
-					if(lastVersion.version < data.version) {
-						lastVersion.version = data.version;
-						callback(data);
-					}
-				})
-				.catch(errorCb);
+					lastVersion.version = data.version;
+					return data;
+				});
 	}
 
-	function _timeout() {
+
+	function run(cb, errCb) {
+		console.log("NoRemoteChangeMonitor::run", ns.name);
 
 		//var nextTimeout = Math.trunc(Math.exp(++timeLoop)) * 1000;
 		console.info(colors.white.dim("RemoteChaneMonitor for "), colors.white.dim(ns.name)); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
 		//if(timeLoop>maxLoops) timeLoop = 0
 
 		//do stuff.
-		_getRemoteDatabaseVersion()
-			.then(function(){
-				//setTimeout(_timeout, nextTimeout);
-				console.log("Version check complete.");
-			})
+		return _getRemoteDatabaseVersion()
+			.then(callback)
 			.catch(errorCb)
-	}
-
-
-	function run(cb, errCb) {
-		console.log("NoRemoteChangeMonitor::run", ns.name);
-		setTimeout(_timeout, oneSecond);
 
 	};
 	this.run = run.bind(null, callback, errCb);

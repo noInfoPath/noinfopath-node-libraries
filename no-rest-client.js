@@ -43,25 +43,18 @@ function NoREST(namespaceCfg) {
 				req,
 				data = _parsePayload(payload);
 
-			//console.log("restCfg", (namespace.name ?   namespace.name + "/" : ""));
-
 			if(!noAuthReq && !options.headers.Authorization && data && data.jwt ) {
 				options.headers.Authorization = "Bearer "  + data.jwt
 			}
 
 			options.headers.connection = "keep-alive";
 
-			//console.log("XXXXXXX",options.headers);
-			//console.log("request", options);
-
 			req = http.request(options, function (res) {
 				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
 					resp = resp + chunk;
-					//console.log('data');
 				});
 				res.on('end', function () {
-					// console.log('data');
 					console.info(colors.white.dim("HTTP End Request"), colors.white.dim(res.statusCode), colors.white.dim(res.statusMessage));
 
 					switch(res.statusCode) {
@@ -70,16 +63,10 @@ function NoREST(namespaceCfg) {
 							reject({status: res.statusCode, message: res.statusMessage});
 							break;
 						case 401:
-							//reauthenticate and then retry.
-							// restAuthenticate()
-							// 	.then(create)
-							// 	.catch(reject);
 							reject({status: res.statusCode, message: res.statusMessage});
 							//reject(401);
 							break;
 						default:
-							//console.info(change.tableName + " " + res.statusCode + " " + res.statusMessage);
-							//log(entity.entityName + " statusCode: ", JSON.stringify(res));
 							if(resp.indexOf("<") === 0) {
 								reject(resp);
 							} else {
@@ -100,12 +87,10 @@ function NoREST(namespaceCfg) {
 
 			if(payload) {
 				console.info(colors.white.dim("HTTP Sending"), colors.white.dim(payload.length), colors.white.dim("bytes of data"));
-				//console.log(" payload", payload);
 				req.write(payload);
 			}
 
 			req.end();
-			//console.log("_authReq: req.end called.");
 
 		});
 	}
@@ -165,13 +150,8 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _request(options, payload) {
-		//console.log("CCCCCC", options);
 		return _authReq(options, payload)
-
-			//_authorized(ruser)
-			//.then(_authReq.bind(this, options, payload))
 			.then(function (results) {
-				//console.log("_authReq::success", namespace.name, {status: 1, message:  "Operation Successful", results: results});
 				return results;
 			})
 			.catch(function (err) {
@@ -190,11 +170,4 @@ function NoREST(namespaceCfg) {
 
 module.exports = function (namespace) {
 	return new NoREST(namespace);
-	// this.user = undefined;
-	// this.namespace = namespace;
-	// this.restRequest = restRequest.bind(this);
-	// this.authorize = authorize.bind(this);
-	// this.authenticate = restAuthenticate.bind(this);
-	// this.restRequest = restRequest.bind(this);
-	// //this.validateToken = validateToken.bind(null, namespace, user);
 };

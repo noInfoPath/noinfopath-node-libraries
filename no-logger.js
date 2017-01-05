@@ -6,11 +6,6 @@ function NoLogger(c) {
 		colors = require('colors/safe')
 		;
 
-		// config.bunyan.streams. push({
-		// 	"level": "info",
-		// 	"stream": process.stdout
-		// });
-
 	function prefix(d) {
 		var t = d ? new Date(d) : new Date();
 		return "[" + config.logging.name + " " + t.toISOString() + "] ";
@@ -36,7 +31,6 @@ function NoLogger(c) {
 }
 
 module.exports = function(config) {
-	//console.log(config);
 	if(!config.logging.bunyan.enabled) console.warn("WARNING: Bunyan is disabled");
 	return new NoLogger(config);
 };
