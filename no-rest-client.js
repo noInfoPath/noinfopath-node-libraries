@@ -88,6 +88,7 @@ function NoREST(namespaceCfg) {
 			if(payload) {
 				console.info(colors.white.dim("HTTP Sending"), colors.white.dim(payload.length), colors.white.dim("bytes of data"));
 				req.write(payload);
+
 			}
 
 			req.end();
@@ -99,8 +100,8 @@ function NoREST(namespaceCfg) {
 		console.info(colors.white.dim("Authenticating access to"), colors.white.dim(namespace.name), colors.white.dim("REST API"));
 
 		var restCfg = namespace.rest;
-		if(restCfg.auth) {
 
+		if(restCfg.auth) {
 			var payload = querystring.stringify(restCfg.auth.payload),
 				options = {
 					host: restCfg.host,

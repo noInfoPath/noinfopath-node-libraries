@@ -46,7 +46,6 @@ function NoCRUDClient(ns) {
 	function resolveRestConfig(ns, c) {
 		var entity = ns.config.schema[c.tableName];
 
-
 		return entity.endpoint || namespace.config.rest;
 	}
 

@@ -86,7 +86,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 
 		options = resolveContentTransferMethod(options, payload.length)
 
-		console.log("markTransactionState", state, transaction);
+		console.log("markTransactionState", state, transaction.namespace, transaction.transactionId);
 
 		return namespace.rest.request(options, payload);
 

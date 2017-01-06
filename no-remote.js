@@ -1,4 +1,5 @@
-var colors = require('colors/safe');
+var Promise = require('es6-promise').Promise,
+	colors = require('colors/safe');
 
 function NoRemoteChangeMonitor(namespace, cb, errCb) {
 	var ns = namespace,
@@ -45,7 +46,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 		//do stuff.
 		return _getRemoteDatabaseVersion()
 			.then(callback)
-			.catch(errorCb)
+			.catch(errorCb);
 
 	};
 	this.run = run.bind(null, callback, errCb);
