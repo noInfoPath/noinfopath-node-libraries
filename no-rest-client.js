@@ -1,7 +1,7 @@
 var Promise = require('es6-promise').Promise,
 	http = require('http'),
-	querystring = require('querystring'),
-	colors = require('colors/safe')
+	querystring = require('querystring')
+	//colors = require('colors/safe')
 ;
 
 function NoREST(namespaceCfg) {
@@ -35,7 +35,7 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _authReq(options, payload, noAuthReq) {
-		console.info(colors.white.dim("HTTP Begin Request"), colors.white.dim(options.host), colors.white.dim(options.port), colors.white.dim(options.method), colors.white.dim(options.path));
+		console.info("HTTP Begin Request", options.host, options.port, options.method, options.path);
 		return new Promise(function (resolve, reject) {
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
@@ -55,7 +55,7 @@ function NoREST(namespaceCfg) {
 					resp = resp + chunk;
 				});
 				res.on('end', function () {
-					console.info(colors.white.dim("HTTP End Request"), colors.white.dim(res.statusCode), colors.white.dim(res.statusMessage));
+					console.info("HTTP End Request", res.statusCode, res.statusMessage);
 
 					switch(res.statusCode) {
 						case 400:
@@ -86,7 +86,7 @@ function NoREST(namespaceCfg) {
 			});
 
 			if(payload) {
-				console.info(colors.white.dim("HTTP Sending"), colors.white.dim(payload.length), colors.white.dim("bytes of data"));
+				console.info("HTTP Sending", payload.length, "bytes of data");
 				req.write(payload);
 
 			}
@@ -97,7 +97,7 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _authenticate() {
-		console.info(colors.white.dim("Authenticating access to"), colors.white.dim(namespace.name), colors.white.dim("REST API"));
+		console.info("Authenticating access to", namespace.name, "REST API");
 
 		var restCfg = namespace.rest;
 
@@ -116,7 +116,7 @@ function NoREST(namespaceCfg) {
 
 			return _authReq(options, payload, true)
 				.then(function (data) {
-					console.log(colors.white.dim(namespace.name), colors.white.dim("Authentication successful for"), colors.white.dim(data.username));
+					console.log(namespace.name, "Authentication successful for", data.username);
 					user = data;
 					//console.log(user);
 					return user;

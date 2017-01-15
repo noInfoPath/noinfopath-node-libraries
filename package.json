@@ -1,6 +1,6 @@
 {
   "name": "@noinfopath/noinfopath-node-libraries",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Provides various services that are shared by BEDS and DTC.",
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,12 @@
   "license": "MIT",
   "dependencies": {
     "bunyan": "^1.8.1",
+    "bunyan-mongodb-stream": "0.0.3",
     "colors": "^1.1.2",
     "es6-promise": "^3.2.1",
     "intercept-stdout": "^0.1.2",
     "mongo-oplog": "^1.0.1",
+    "mongoose": "^4.7.6",
     "noinfopath-bson-timestamp": ">=1.0.0"
   }
 }

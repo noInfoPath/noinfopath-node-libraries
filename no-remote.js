@@ -1,5 +1,5 @@
-var Promise = require('es6-promise').Promise,
-	colors = require('colors/safe');
+var Promise = require('es6-promise').Promise;
+	//colors = require('colors/safe');
 
 function NoRemoteChangeMonitor(namespace, cb, errCb) {
 	var ns = namespace,
@@ -38,7 +38,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 
 	function run(cb, errCb) {
 		//var nextTimeout = Math.trunc(Math.exp(++timeLoop)) * 1000;
-		console.info(colors.white.dim("RemoteChangeMonitor for"), colors.white.dim(ns.name)); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
+		console.info("RemoteChangeMonitor for", ns.name); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
 		//if(timeLoop>maxLoops) timeLoop = 0
 
 		//do stuff.
