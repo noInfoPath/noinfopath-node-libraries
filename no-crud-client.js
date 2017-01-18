@@ -34,10 +34,6 @@ function NoCRUDClient(ns) {
 			url +=  c.tableName + (odata || "");
 		}
 
-
-
-
-
 		 //.name, change ? change.table : ""
 		 console.log("resolveUrl", url);
 		 return url;
@@ -81,7 +77,6 @@ function NoCRUDClient(ns) {
 			};
 
 		options = resolveContentTransferMethod(options, Buffer.byteLength(payload) );
-
 
 		console.log("restCreate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
 

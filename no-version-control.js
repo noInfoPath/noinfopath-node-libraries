@@ -113,6 +113,7 @@ function NoVersionManager(namespaceCfg) {
 			})
 			.catch(function(err){
 				console.error(err);
+				trans.error = err;
 				namespace.trans.markError(trans);
 			});
 	}
