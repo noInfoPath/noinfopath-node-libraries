@@ -28,7 +28,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 				}
 			};
 
-		options = resolveContentTransferMethod(options, payload.length)
+		options = resolveContentTransferMethod(options, payload.length);
 
 		return namespace.rest.request(options, payload);
 	}
@@ -84,7 +84,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 
 		payload = JSON.stringify(data);
 
-		options = resolveContentTransferMethod(options, payload.length)
+		options = resolveContentTransferMethod(options, payload.length);
 
 		console.log("markTransactionState", state, transaction.namespace, transaction.transactionId);
 
