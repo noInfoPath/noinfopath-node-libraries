@@ -40,7 +40,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 		var restCfg = namespace.config.rest,
 			filter = namespaceName ? "?$filter=(namespace eq '" + namespaceName + "') and (state eq 'pending')&$orderby=timestamp desc"
 				: "?$filter=state eq 'pending'&$orderby=timestamp desc",
-			url = encodeURI(restCfg.changesUri + filter),
+			url = encodeURI(restCfg.changesUri + "-metadata" + filter),
 			options = {
 				host: restCfg.host,
 				port: restCfg.port,

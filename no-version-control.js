@@ -121,7 +121,9 @@ function NoVersionManager(namespaceCfg) {
 		var trans = transactions[current++];
 		if(trans) {
 			console.log("Processing transaction ", trans.transactionId);
-			_processTransaction(trans)
+
+			_getTransactionObject(trans)
+				.then(_processTransaction)
 				.then(function(){
 					_recurseTransactions(transactions, current, resolve, reject);
 				})
@@ -133,6 +135,23 @@ function NoVersionManager(namespaceCfg) {
 		}else{
 			resolve(current - 1);
 		}
+	}
+
+	function _getTransactionObject(metadata) {
+		var restCfg = namespace.config.rest,
+			options = {
+				host: restCfg.host,
+				port: restCfg.port,
+				method: "GET",
+				path: restCfg.changesUri + '/' + metadata.metadata.ChangeID,
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': "Bearer "  + namespace.jwt,
+					'Transfer-Encoding': 'chunked'
+				}
+			};
+
+		return namespace.rest.request(options);
 	}
 
 	function _processTransactions(transactions) {
