@@ -14,7 +14,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 	}
 
 	function _savePendingTransactions(transaction){
-		transaction.changeCount = transactions.changes.length;
+		transaction.changeCount = transaction.changes.length;
 
 		var restCfg = namespace.config.rest,
 			payload = JSON.stringify(transaction),
