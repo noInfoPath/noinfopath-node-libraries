@@ -1,8 +1,10 @@
 var Promise = require('es6-promise').Promise,
 	restClient = require("./no-rest-client");
 
-function NoVersionManager(namespaceCfg) {
+function NoVersionManager(namespaceCfg, tm) {
+
 	var namespace = namespaceCfg,
+		transMan = tm,
 		rest = namespace.rest,
 		crud = namespace.crud,
 		CUD = {
@@ -120,9 +122,9 @@ function NoVersionManager(namespaceCfg) {
 	function _recurseTransactions(transactions, current, resolve, reject) {
 		var trans = transactions[current++];
 		if(trans) {
-			console.log("Processing transaction ", trans.transactionId);
+			console.log("Processing transaction ", trans.metadata.transactionId);
 
-			_getTransactionObject(trans)
+			transMan.getTransactionObject(trans)
 				.then(_processTransaction)
 				.then(function(){
 					_recurseTransactions(transactions, current, resolve, reject);
@@ -137,22 +139,6 @@ function NoVersionManager(namespaceCfg) {
 		}
 	}
 
-	function _getTransactionObject(metadata) {
-		var restCfg = namespace.config.rest,
-			options = {
-				host: restCfg.host,
-				port: restCfg.port,
-				method: "GET",
-				path: restCfg.changesUri + '/' + metadata.metadata.ChangeID,
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': "Bearer "  + namespace.jwt,
-					'Transfer-Encoding': 'chunked'
-				}
-			};
-
-		return namespace.rest.request(options);
-	}
 
 	function _processTransactions(transactions) {
 		var promises = [];
@@ -162,6 +148,6 @@ function NoVersionManager(namespaceCfg) {
 	this.pushChanges = _processTransactions;
 }
 
-module.exports = function (namespace) {
-	return new NoVersionManager(namespace);
+module.exports = function (namespace, tm) {
+	return new NoVersionManager(namespace, tm);
 };

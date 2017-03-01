@@ -18,6 +18,7 @@ function NoREST(namespaceCfg) {
 
 		return o;
 	}
+
 	function _getNoDbSchema() {
 		console.log("getNoDbSchema");
 		var options = {
@@ -44,7 +45,7 @@ function NoREST(namespaceCfg) {
 				data = _parsePayload(payload);
 
 			if(!noAuthReq && !options.headers.Authorization && data && data.jwt ) {
-				options.headers.Authorization = "Bearer "  + data.jwt
+				options.headers.Authorization = "Bearer "  + data.jwt;
 			}
 
 			options.headers.connection = "keep-alive";

@@ -13,8 +13,9 @@ function NoTransactionManager(namespaceCfg, jwt) {
 		return options;
 	}
 
-
 	function _savePendingTransactions(transaction){
+		transaction.changeCount = transactions.changes.length;
+
 		var restCfg = namespace.config.rest,
 			payload = JSON.stringify(transaction),
 			options = {
@@ -38,8 +39,8 @@ function NoTransactionManager(namespaceCfg, jwt) {
 		//if(namespace.config.notSyncable) return;
 		console.info(namespace.name, " checking pending transactions for " + namespaceName);
 		var restCfg = namespace.config.rest,
-			filter = namespaceName ? "?$filter=(namespace eq '" + namespaceName + "') and (state eq 'pending')&$orderby=timestamp desc"
-				: "?$filter=state eq 'pending'&$orderby=timestamp desc",
+			filter = namespaceName ? "?$filter=(metadata_namespace eq '" + namespaceName + "') and (metadata_state eq 'pending')&$orderby=timestamp desc"
+				: "?$filter=metadata_state eq 'pending'&$orderby=timestamp desc",
 			url = encodeURI(restCfg.changesUri + "-metadata" + filter),
 			options = {
 				host: restCfg.host,
@@ -64,6 +65,28 @@ function NoTransactionManager(namespaceCfg, jwt) {
 
 	}
 	this.pendingTransactions = getPendingTransactions;
+
+	function _getTransactionObject(metadata) {
+		var restCfg = namespace.config.rest,
+			options = {
+				host: restCfg.host,
+				port: restCfg.port,
+				method: "GET",
+				path: restCfg.changesUri + '/' + metadata.metadata.ChangeID,
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': "Bearer "  + namespace.jwt,
+					'Transfer-Encoding': 'chunked'
+				}
+			};
+
+		return namespace.rest.request(options)
+			.then(function(data){
+				console.log(data);
+				return data;
+			});
+	}
+	this.getTransactionObject = _getTransactionObject;
 
 	function markTransactionState(transaction, state) {
 		var data = transaction,
