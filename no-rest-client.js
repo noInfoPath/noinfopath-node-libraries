@@ -1,5 +1,6 @@
 var Promise = require('es6-promise').Promise,
 	http = require('http'),
+	https = require('https'),
 	querystring = require('querystring')
 	//colors = require('colors/safe')
 ;
@@ -42,7 +43,8 @@ function NoREST(namespaceCfg) {
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
 				resp = "",
 				req,
-				data = _parsePayload(payload);
+				data = _parsePayload(payload),
+				server = options.port === 443 ? https : http;
 
 			if(!noAuthReq && !options.headers.Authorization && data && data.jwt ) {
 				options.headers.Authorization = "Bearer "  + data.jwt;
@@ -50,7 +52,7 @@ function NoREST(namespaceCfg) {
 
 			options.headers.connection = "keep-alive";
 
-			req = http.request(options, function (res) {
+			req = server.request(options, function (res) {
 				res.setEncoding('utf8');
 				res.on('data', function (chunk) {
 					resp = resp + chunk;
@@ -77,6 +79,9 @@ function NoREST(namespaceCfg) {
 							break;
 					}
 
+				});
+				res.on("error", function(){
+					console.error(arguments);
 				});
 			});
 

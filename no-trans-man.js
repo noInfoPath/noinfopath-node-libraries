@@ -30,7 +30,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 			};
 
 		options = resolveContentTransferMethod(options, payload.length);
-
+		console.log("_savePendingTransactions", options);
 		return namespace.rest.request(options, payload);
 	}
 	this.savePending = _savePendingTransactions;

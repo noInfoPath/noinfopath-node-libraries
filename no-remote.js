@@ -7,10 +7,11 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 		errorCb = errCb,
 		timeLoop = 0,
 		oneSecond = 1000,
-		maxLoops = 3
+		maxLoops = 3,
 		lastVersion = {namespace: ns.name, version: 0};
 
 	function _getRemoteDatabaseVersion() {
+		console.log(ns.config.rest.versionUri);
 		var url = ns.config.rest.versionUri,
 			options = {
 				host: ns.config.rest.host,
@@ -46,7 +47,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 			.then(callback)
 			.catch(errorCb);
 
-	};
+	}
 	this.run = run.bind(null, callback, errCb);
 }
 
