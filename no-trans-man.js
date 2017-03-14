@@ -30,7 +30,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 			};
 
 		options = resolveContentTransferMethod(options, payload.length);
-		console.log("_savePendingTransactions", options);
+
 		return namespace.rest.request(options, payload);
 	}
 	this.savePending = _savePendingTransactions;
@@ -66,6 +66,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 	}
 	this.pendingTransactions = getPendingTransactions;
 
+
 	function _getTransactionObject(metadata) {
 		var restCfg = namespace.config.rest,
 			options = {
@@ -81,21 +82,21 @@ function NoTransactionManager(namespaceCfg, jwt) {
 			};
 
 		return namespace.rest.request(options)
-			.then(function(data){
-				console.log(data);
+			.then(function(data){			
 				return data;
 			});
 	}
 	this.getTransactionObject = _getTransactionObject;
 
 	function markTransactionState(transaction, state) {
+		console.log("markTransactionState", namespaceCfg);
 		var data = transaction,
 			restCfg = namespace.config.rest,
 			options = {
 				host: restCfg.host,
 				port: restCfg.port,
 				method: "PUT",
-				path: restCfg.changesUri + "-metadata/" + transaction.ChangeID,
+				path: restCfg.changesUri + "-metadata/" + transaction.metadata.ChangeID,
 				headers: {
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + namespace.jwt
@@ -103,13 +104,13 @@ function NoTransactionManager(namespaceCfg, jwt) {
 			},
 			payload;
 
-		data.state = state;
+		data.metadata.state = state;
 
 		payload = JSON.stringify(data);
 
 		options = resolveContentTransferMethod(options, payload.length);
 
-		console.log("markTransactionState", state, transaction.namespace, transaction.transactionId);
+		console.log("markTransactionState", state, transaction.metadata.namespace, transaction.metadata.transactionId);
 
 		return namespace.rest.request(options, payload);
 	}

@@ -87,7 +87,7 @@ function NoREST(namespaceCfg) {
 
 
 			req.on('error', function (err) {
-				console.error("HTTP Request Rrror", namespace.name, err);
+				console.error("HTTP Request Error", namespace.name, err);
 				reject(err);
 			});
 

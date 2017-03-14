@@ -56,6 +56,7 @@ function NoVersionManager(namespaceCfg, tm) {
 		//console.log("version.jwt", version.jwt);
 		return namespace.rest.request(options)
 			.then(function(data){
+				console.log(data);
 				console.log("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes");
 
 				return data;
@@ -103,40 +104,45 @@ function NoVersionManager(namespaceCfg, tm) {
 
 	}
 
-	function _processTransaction(trans){
+	function _processTransaction(metadata, trans){
 		var promises = [];
-
+	console.log("XXXXX");
 		console.log(trans.namespace, "Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
 
 		return new Promise(_recurseChanges.bind(this, trans, trans.changes.length))
 			.then(function(data){
-				console.log("transaction processed.", data);
-				namespace.trans.markProcessed(trans);
+				console.log("transaction processed.", metadata);
+				namespace.trans.markProcessed(metadata);
 			})
 			.catch(function(err){
 				console.error(err);
-				namespace.trans.markError(trans);
+				namespace.trans.markError(metadata);
 			});
 	}
 
 	function _recurseTransactions(transactions, current, resolve, reject) {
-		var trans = transactions[current++];
-		if(trans) {
-			console.log("Processing transaction ", trans.metadata.transactionId);
+		try{
+			var trans = transactions[current++];
+			if(trans) {
+				console.log("Processing transaction ", trans.metadata.transactionId);
 
-			transMan.getTransactionObject(trans)
-				.then(_processTransaction)
-				.then(function(){
-					_recurseTransactions(transactions, current, resolve, reject);
-				})
-				.catch(function(err){
-					console.error("_recurseTransactions error", err);
-					_recurseTransactions(transactions, current, resolve, reject);
-				});
+				transMan.getTransactionObject(trans)
+					.then(_processTransaction.bind(null, trans))
+					.then(function(){
+						_recurseTransactions(transactions, current, resolve, reject);
+					})
+					.catch(function(err){
+						console.error("_recurseTransactions error", err);
+						_recurseTransactions(transactions, current, resolve, reject);
+					});
 
-		}else{
-			resolve(current - 1);
+			}else{
+				resolve(current - 1);
+			}
+		} catch(err) {
+			console.error(err);
 		}
+
 	}
 
 
