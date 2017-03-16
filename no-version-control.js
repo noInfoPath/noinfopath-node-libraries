@@ -38,6 +38,7 @@ function NoVersionManager(namespaceCfg, tm) {
 	this.check = _check;
 
 	function _getVersionedData(version) {
+
 		var restCfg = namespace.config.rest,
 			//filter = "?$filter=(startswith(ns, '" + version.namespace + "')) and (v gt " + version.lastSyncVersion + ")&$orderby=v",
 			url = restCfg.changesUri + "/" + version.lastSyncVersion,
@@ -53,10 +54,12 @@ function NoVersionManager(namespaceCfg, tm) {
 			}
 		;
 
+		//console.log("XXXX", options);
+
 		//console.log("version.jwt", version.jwt);
 		return namespace.rest.request(options)
 			.then(function(data){
-				console.log(data);
+				//console.log(data);
 				console.log("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes");
 
 				return data;
@@ -79,7 +82,7 @@ function NoVersionManager(namespaceCfg, tm) {
 			//})
 		return op({jwt: trans.jwt}, change)
 			.then(function (results) {
-				console.log(namespace.name, results ? results.length : 0);
+				console.log("Change applied to: ", namespace.name, results ? results.length : 0);
 				return results;
 			})
 			.catch(function (err) {
@@ -106,12 +109,11 @@ function NoVersionManager(namespaceCfg, tm) {
 
 	function _processTransaction(metadata, trans){
 		var promises = [];
-	console.log("XXXXX");
+
 		console.log(trans.namespace, "Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
 
 		return new Promise(_recurseChanges.bind(this, trans, trans.changes.length))
 			.then(function(data){
-				console.log("transaction processed.", metadata);
 				namespace.trans.markProcessed(metadata);
 			})
 			.catch(function(err){

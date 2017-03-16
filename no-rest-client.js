@@ -63,6 +63,7 @@ function NoREST(namespaceCfg) {
 					switch(res.statusCode) {
 						case 400:
 						case 500:
+							
 							reject({status: res.statusCode, message: res.statusMessage});
 							break;
 						case 401:
@@ -70,6 +71,7 @@ function NoREST(namespaceCfg) {
 							//reject(401);
 							break;
 						default:
+
 							if(resp.indexOf("<") === 0) {
 								reject(resp);
 							} else {

@@ -12,7 +12,7 @@ function NoCRUDClient(ns) {
 		 	url;
 
 		if(entity.endpoint) {
-			url = entity.endpoint.uri
+			url = entity.endpoint.uri;
 		} else {
 			if(restCfg.apiPrefix) {
 				url = restCfg.apiPrefix;

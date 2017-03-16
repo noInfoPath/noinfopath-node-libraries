@@ -30,7 +30,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 			return ns.rest.request(options, undefined, user)
 				.then(function (data) {
 					data.namespace = ns.name;
-					console.info("Version Check", "current", lastVersion, "new", data);
+					console.info("Change update received:", "Last Version", lastVersion, "Current Version", data);
 					lastVersion.version = data.version;
 					return data;
 				});
@@ -39,7 +39,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 
 	function run(cb, errCb) {
 		//var nextTimeout = Math.trunc(Math.exp(++timeLoop)) * 1000;
-		console.info("RemoteChangeMonitor for", ns.name); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
+		console.info("RemoteChangeMonitor: checking for change at", ns.name); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
 		//if(timeLoop>maxLoops) timeLoop = 0
 
 		//do stuff.

@@ -59,7 +59,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 				return data;
 			})
 			.catch(function(err){
-				console.error(err);
+				return err;
 			})
 			;
 
@@ -82,14 +82,14 @@ function NoTransactionManager(namespaceCfg, jwt) {
 			};
 
 		return namespace.rest.request(options)
-			.then(function(data){			
+			.then(function(data){
 				return data;
 			});
 	}
 	this.getTransactionObject = _getTransactionObject;
 
 	function markTransactionState(transaction, state) {
-		console.log("markTransactionState", namespaceCfg);
+		//console.log("markTransactionState", state, transaction.metadata.ChangeID);
 		var data = transaction,
 			restCfg = namespace.config.rest,
 			options = {
