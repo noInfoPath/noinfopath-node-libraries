@@ -39,7 +39,12 @@ function NoLoggerMongoDb(c) {
 		logger, LogEntryModel, LogEntryStream, db, unhook_intercept;
 
 	mongoose.Promise = require('es6-promise').Promise;
-	mongoose.connect(config.logging.mongo);
+	mongoose.connect(config.logging.mongo, {
+		server: {
+			reconnectTries: 100000,
+			reconnectInterval: 15000
+		}
+	});
 
 
 	/**
@@ -76,7 +81,11 @@ function NoLoggerMongoDb(c) {
 	LogEntryStream = require('bunyan-mongodb-stream')({model: LogEntryModel});
 
 	db = mongoose.connection;
-	db.on('error', console.error.bind(console, 'connection error:'));
+
+	db.on('error', function(err){
+		console.error("Failed to connect to MongoDB for loggin. will try in 15 seconds", err.message);
+	});
+
 	db.once('open', function() {
 		console.log("noLogger conntected to MongoDB");
 		config.logging.bunyan.streams.push({ stream: LogEntryStream});
