@@ -37,7 +37,7 @@ function NoTransactionManager(namespaceCfg, jwt) {
 
 	function getPendingTransactions(namespaceName) {
 		//if(namespace.config.notSyncable) return;
-		console.info(namespace.name, " checking pending transactions for " + namespaceName);
+		//console.info(namespace.name, " checking pending transactions for " + namespaceName);
 		var restCfg = namespace.config.rest,
 			filter = namespaceName ? "?$filter=(metadata_namespace eq '" + namespaceName + "') and (metadata_state eq 'pending')&$orderby=timestamp desc"
 				: "?$filter=metadata_state eq 'pending'&$orderby=timestamp desc",

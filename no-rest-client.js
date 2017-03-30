@@ -21,7 +21,7 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _getNoDbSchema() {
-		console.log("getNoDbSchema");
+		//console.log("getNoDbSchema");
 		var options = {
 			host: config.rest.host,
 			port: config.rest.port,
@@ -37,7 +37,7 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _authReq(options, payload, noAuthReq) {
-		console.info("HTTP Begin Request", options.host, options.port, options.method, options.path);
+		//console.info("HTTP Begin Request", options.host, options.port, options.method, options.path);
 		return new Promise(function (resolve, reject) {
 			var restCfg = namespace.rest,
 				authCfg = restCfg.auth ? restCfg.auth.authorization : undefined,
@@ -46,10 +46,14 @@ function NoREST(namespaceCfg) {
 				data = _parsePayload(payload),
 				server = options.port === 443 ? https : http;
 
+				//console.log("_authReq", !noAuthReq , !options.headers.Authorization , data , data.jwt);
 			if(!noAuthReq && !options.headers.Authorization && data && data.jwt ) {
 				options.headers.Authorization = "Bearer "  + data.jwt;
 			}
 
+			//console.trace();
+
+			//console.log("options.headers.Authorization", options.headers.Authorization);
 			options.headers.connection = "keep-alive";
 
 			req = server.request(options, function (res) {
@@ -58,12 +62,12 @@ function NoREST(namespaceCfg) {
 					resp = resp + chunk;
 				});
 				res.on('end', function () {
-					console.info("HTTP End Request", res.statusCode, res.statusMessage);
+					//console.info("HTTP End Request", res.statusCode, res.statusMessage);
 
 					switch(res.statusCode) {
 						case 400:
 						case 500:
-							
+
 							reject({status: res.statusCode, message: res.statusMessage});
 							break;
 						case 401:
@@ -89,12 +93,12 @@ function NoREST(namespaceCfg) {
 
 
 			req.on('error', function (err) {
-				console.error("HTTP Request Error", namespace.name, err);
+				//console.error("HTTP Request Error", namespace.name, err);
 				reject(err);
 			});
 
 			if(payload) {
-				console.info("HTTP Sending", payload.length, "bytes of data");
+				//console.info("HTTP Sending", payload.length, "bytes of data");
 				req.write(payload);
 
 			}
@@ -124,7 +128,7 @@ function NoREST(namespaceCfg) {
 
 			return _authReq(options, payload, true)
 				.then(function (data) {
-					console.log(namespace.name, "Authentication successful for", data.username);
+					//console.log(namespace.name, "Authentication successful for", data.username);
 					user = data;
 					//console.log(user);
 					return user;
@@ -133,7 +137,7 @@ function NoREST(namespaceCfg) {
 					console.error("Authentication Failed.", namespace.name, err);
 				});
 		} else {
-			console.log(namespace.name, "Debug Authentication successful.");
+			console.info(namespace.name, "Debug Authentication successful.");
 			return Promise.resolve({
 				userId: "debug",
 				access_token: "FAKEBEARERTOKEN"
@@ -144,10 +148,10 @@ function NoREST(namespaceCfg) {
 	function _authorized(ruser) {
 		return new Promise(function (resolve, reject) {
 			if(ruser){
-				console.log(namespace.name, "Using request user.");
+				console.info(namespace.name, "Using request user.");
 				resolve(ruser);
 			} else if(user) {
-				console.log(namespace.name, "Using cached user login.");
+				console.info(namespace.name, "Using cached user login.");
 				resolve(user);
 			} else {
 
@@ -159,6 +163,7 @@ function NoREST(namespaceCfg) {
 	}
 
 	function _request(options, payload) {
+
 		return _authReq(options, payload)
 			.then(function (results) {
 				return results;

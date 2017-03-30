@@ -14,7 +14,7 @@ function NoVersionManager(namespaceCfg, tm) {
 		}, user;
 
 	function _check() {
-		console.log("check", !namespace.config.notSyncable);
+		//console.log("check", !namespace.config.notSyncable);
 		if(namespace.config.notSyncable) return Promise.resolve({version: 0, changes: []});
 		var restCfg = namespace.config.rest,
 			options = {
@@ -29,7 +29,7 @@ function NoVersionManager(namespaceCfg, tm) {
 		;
 		//console.log(restCfg);
 		if(!!restCfg.versionUri) {
-			console.info(namespace.name + " Checking for change version");
+			//console.info(namespace.name + " Checking for change version");
 			return namespace.rest.request(options);
 		}else{
 			return Promise.resolve({version: 0, changes: []});
@@ -60,7 +60,7 @@ function NoVersionManager(namespaceCfg, tm) {
 		return namespace.rest.request(options)
 			.then(function(data){
 				//console.log(data);
-				console.log("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes");
+				if(data.changes.length) console.info("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes");
 
 				return data;
 			})
@@ -72,7 +72,7 @@ function NoVersionManager(namespaceCfg, tm) {
 	this.getDataByVersion = _getVersionedData;
 
 	function _applyChange(trans, change) {
-		console.log("Change type: ", change.changeType);
+		console.info("Applying Change: ", change.changeType, change.namespace, change.tableName);
 
 		var op = CUD[change.changeType];
 
@@ -82,12 +82,11 @@ function NoVersionManager(namespaceCfg, tm) {
 			//})
 		return op({jwt: trans.jwt}, change)
 			.then(function (results) {
-				console.log("Change applied to: ", namespace.name, results ? results.length : 0);
+				//console.info("Change applied to: ", namespace.name, results ? results.length : 0);
 				return results;
 			})
 			.catch(function (err) {
-				console.error("ERROR:", err);
-				throw err;
+				throw {error: err, change: change};
 			});
 	}
 
@@ -97,7 +96,7 @@ function NoVersionManager(namespaceCfg, tm) {
 			_applyChange(trans, change)
 				.then(_recurseChanges.bind(this, trans, current, resolve, reject))
 				.catch(function(err){
-					console.error("_recurseChanges::error", err);
+					console.error("Error Occured Applying Change:", err);
 					reject(err);
 					//_recurseChanges.call(this, trans, current, resolve, reject);
 				});
@@ -110,14 +109,15 @@ function NoVersionManager(namespaceCfg, tm) {
 	function _processTransaction(metadata, trans){
 		var promises = [];
 
-		console.log(trans.namespace, "Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
+		console.info(trans.namespace, "Transaction ", trans.transactionId, " contains ", trans.changes.length, " changes.");
 
 		return new Promise(_recurseChanges.bind(this, trans, trans.changes.length))
 			.then(function(data){
 				namespace.trans.markProcessed(metadata);
 			})
 			.catch(function(err){
-				console.error(err);
+				//console.error("Error occured processing transaction", err);
+				metadata.error = err;
 				namespace.trans.markError(metadata);
 			});
 	}
@@ -126,7 +126,7 @@ function NoVersionManager(namespaceCfg, tm) {
 		try{
 			var trans = transactions[current++];
 			if(trans) {
-				console.log("Processing transaction ", trans.metadata.transactionId);
+				//console.log("Processing transaction ", trans.metadata.transactionId);
 
 				transMan.getTransactionObject(trans)
 					.then(_processTransaction.bind(null, trans))
@@ -150,7 +150,7 @@ function NoVersionManager(namespaceCfg, tm) {
 
 	function _processTransactions(transactions) {
 		var promises = [];
-		console.log("_processTransactions", namespace.name, " has ", transactions.length, " pending transactions.");
+		//console.log("_processTransactions", namespace.name, " has ", transactions.length, " pending transactions.");
 		return new Promise(_recurseTransactions.bind(this, transactions, 0));
 	}
 	this.pushChanges = _processTransactions;

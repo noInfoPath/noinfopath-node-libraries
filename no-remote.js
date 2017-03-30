@@ -11,7 +11,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 		lastVersion = {namespace: ns.name, version: 0};
 
 	function _getRemoteDatabaseVersion() {
-		console.log(ns.config.rest.versionUri);
+		//console.log(ns.config.rest.versionUri);
 		var url = ns.config.rest.versionUri,
 			options = {
 				host: ns.config.rest.host,
@@ -30,7 +30,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 			return ns.rest.request(options, undefined, user)
 				.then(function (data) {
 					data.namespace = ns.name;
-					console.info("Change update received:", "Last Version", lastVersion, "Current Version", data);
+					if(lastVersion.version !== data.version) console.info("Change update received:", "Last Version", lastVersion, "Current Version", data);
 					lastVersion.version = data.version;
 					return data;
 				});
@@ -39,7 +39,7 @@ function NoRemoteChangeMonitor(namespace, cb, errCb) {
 
 	function run(cb, errCb) {
 		//var nextTimeout = Math.trunc(Math.exp(++timeLoop)) * 1000;
-		console.info("RemoteChangeMonitor: checking for change at", ns.name); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
+		//console.info("RemoteChangeMonitor: checking for change at", ns.name); //, colors.white.dim("is in timeloop"), colors.white.dim((timeLoop-1)), colors.white.dim(", next loop in"), colors.white.dim(nextTimeout / 1000), colors.white.dim("seconds"));
 		//if(timeLoop>maxLoops) timeLoop = 0
 
 		//do stuff.

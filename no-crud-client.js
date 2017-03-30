@@ -4,11 +4,11 @@ function NoCRUDClient(ns) {
 		config = namespace.config;
 
 	function resolveUrl(ns, c, odata){
-		console.log("resolveUrl", ns.name, c.tableName);
+		//console.log("resolveUrl", ns.name, c.tableName);
 
 		var	restCfg = ns.config.rest,
 			entity = ns.config.schema[c.tableName],
-			pk = c.data[entity.primaryKey],
+			pk = typeof(c.data) === "object" ? c.data[entity.primaryKey] : c.data,
 		 	url;
 
 		if(entity.endpoint) {
@@ -34,13 +34,7 @@ function NoCRUDClient(ns) {
 			url +=  c.tableName + (odata || "");
 		}
 
-
-
-
-
-		 //.name, change ? change.table : ""
-		 console.log("resolveUrl", url);
-		 return url;
+		return url;
 	}
 
 	function resolveRestConfig(ns, c) {
@@ -61,7 +55,7 @@ function NoCRUDClient(ns) {
 	}
 
 	function restCreate(user, change) {
-		console.log("restCreate", user);
+		//console.log("restCreate", user);
 
 		var	restCfg = resolveRestConfig(namespace, change),
 			url = resolveUrl(namespace, change),
@@ -83,7 +77,7 @@ function NoCRUDClient(ns) {
 		options = resolveContentTransferMethod(options, Buffer.byteLength(payload) );
 
 
-		console.log("restCreate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+		//console.log("restCreate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
 
 		return restClient.request(options, payload, user)
 			.then(function(data){
@@ -97,6 +91,7 @@ function NoCRUDClient(ns) {
 	this.create = restCreate;
 
 	function restOne(user, change) {
+		//console.log("YYYYY", user, change.jwt);
 		var url = resolveUrl(namespace, change),
 			options = {
 				host: config.rest.host,
@@ -104,13 +99,14 @@ function NoCRUDClient(ns) {
 				method: "GET",
 				path: url,
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer '  + user.jwt
 				}
 			};
 
+
 		return restClient.request(options, undefined, user)
 			.then(function (data) {
-
 				return data.length ? data[0] : data;
 			});
 
@@ -213,7 +209,7 @@ function NoCRUDClient(ns) {
 			options = resolveContentTransferMethod(options, Buffer.byteLength(payload) );
 
 
-			console.log("restUpdate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
+			//console.log("restUpdate", namespace.name, "Requesting: ", url, "Paylaod size", payload ? Buffer.byteLength(payload) : 0);
 			return restClient.request(options, payload, user)
 				.then(function(data){
 					return data;
@@ -231,6 +227,7 @@ function NoCRUDClient(ns) {
 	this.update = restUpdate;
 
 	function restDelete(user, change) {
+		//console.log("restDelete", user);
 		function destroy(user, change) {
 			var url = resolveUrl(namespace, change),
 				options = {
@@ -239,9 +236,13 @@ function NoCRUDClient(ns) {
 					method: "DELETE",
 					path: url,
 					headers: {
-						'Content-Type': 'application/json'
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + user.jwt
 					}
 				};
+
+
+			console.log("URL:" , url);
 
 			return restClient.request(options, undefined, user)
 				.then(function (data) {
@@ -256,8 +257,17 @@ function NoCRUDClient(ns) {
 		return new Promise(function (resolve, reject) {
 			restOne(user, change)
 				.then(function (data) {
-					change.before = data;
-					return destroy(user, change);
+					try {
+						if(data["odata.metadata"]) {
+							delete data["odata.metadata"];
+						}
+
+						change.before = data;
+						return destroy(user, change);
+					} catch(err) {
+						console.error("destroy", err);
+					}
+
 				})
 				.then(resolve)
 				.catch(reject);
