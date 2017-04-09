@@ -195,7 +195,7 @@ function NoCRUDClient(ns) {
 				options = {
 					host: restCfg.host,
 					port: restCfg.port,
-					method: "PATCH",
+					method: "PUT",
 					path: url,
 					headers: {
 						'Content-Type': 'application/json;odata=verbose',
