@@ -37,7 +37,7 @@ function NoVersionManager(namespaceCfg, tm) {
 	}
 	this.check = _check;
 
-	function _getVersionedData(version) {
+	function _getVersionedData(version, user) {
 
 		var restCfg = namespace.config.rest,
 			//filter = "?$filter=(startswith(ns, '" + version.namespace + "')) and (v gt " + version.lastSyncVersion + ")&$orderby=v",
@@ -60,7 +60,12 @@ function NoVersionManager(namespaceCfg, tm) {
 		return namespace.rest.request(options)
 			.then(function(data){
 				//console.log(data);
-				if(data.changes.length) console.info("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes");
+
+				data.changes = data.changes.filter(function(datum){
+					return datum.values.ModifiedBy !== user.nameid;
+				});
+
+				console.info("Versioned Data Received: Version", data.version, ", contains", data.changes.length, "changes for user", user.unique_name);
 
 				return data;
 			})
