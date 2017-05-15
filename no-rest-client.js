@@ -44,8 +44,12 @@ function NoREST(namespaceCfg) {
 				resp = "",
 				req,
 				data = _parsePayload(payload),
-				server = options.port === 443 ? https : http;
+				isSSL = [443, 8443].indexOf(options.port) > -1,
+				server = isSSL ? https : http;
 
+			if(isSSL) {
+				options.rejectUnauthorized = process.env.NOINFOPATHDEBUG !== "debug";
+			}
 				//console.log("_authReq", !noAuthReq , !options.headers.Authorization , data , data.jwt);
 			if(!noAuthReq && !options.headers.Authorization && data && data.jwt ) {
 				options.headers.Authorization = "Bearer "  + data.jwt;
