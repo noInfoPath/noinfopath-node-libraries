@@ -125,5 +125,9 @@ function NoLoggerMongoDb(c) {
 }
 
 module.exports = function(config) {
+	var fs = require("fs");
+
+	if(!fs.existsSync("./logs")) fs.mkdirSync("./logs");
+
 	return config.logging.mongo ? new NoLoggerMongoDb(config) : new NoLogger(config);
 };
