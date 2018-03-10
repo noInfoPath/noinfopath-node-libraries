@@ -3,6 +3,10 @@
   "version": "2.0.24",
   "description": "Provides various services that are shared by BEDS and DTC.",
   "main": "index.js",
+	"repository": {
+    "type": "git",
+    "url": "https://github.com/noInfoPath/noinfopath-node-libraries.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
